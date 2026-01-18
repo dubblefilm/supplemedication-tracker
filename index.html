@@ -1,0 +1,2172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💊 Supplemedication Tracker</title>
+    <meta name="theme-color" content="#6366f1">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU3VwcGxlbWVkaWNhdGlvbiBUcmFja2VyIiwic2hvcnRfbmFtZSI6IlN1cHBsZW1lbnRzIiwic3RhcnRfdXJsIjoiLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiNmZmZmZmYiLCJ0aGVtZV9jb2xvciI6IiM2MzY2ZjEiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJyUzRSUzQ3RleHQgeT0nLjllbScgZm9udC1zaXplPSc5MCclM0UlRjAlOUYlOTIlOEElM0MvdGV4dCUzRSUzQy9zdmclM0UiLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            opacity: 0.7;
+            font-size: 0.85em;
+            margin-top: 30px;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .time-section {
+            margin-bottom: 25px;
+        }
+
+        .time-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .time-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .time-icon {
+            font-size: 1.5em;
+        }
+
+        .time-label {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .supplement-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .supplement-item:hover {
+            background: #e9ecef;
+        }
+
+        .supplement-item.taken {
+            background: #d4edda;
+            opacity: 0.7;
+        }
+
+        .checkbox {
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .checkbox.checked {
+            background: #667eea;
+        }
+
+        .checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+        }
+
+        .supplement-info {
+            flex: 1;
+        }
+
+        .supplement-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .supplement-dosage {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .manage-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .manage-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .manage-info {
+            flex: 1;
+        }
+
+        .manage-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .manage-details {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .manage-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.3em;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-btn {
+            color: #667eea;
+        }
+
+        .edit-btn:hover {
+            background: #f0f0ff;
+        }
+
+        .delete-btn {
+            color: #dc3545;
+        }
+
+        .delete-btn:hover {
+            background: #ffe0e0;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .add-btn:hover {
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            background: white;
+            border-radius: 15px;
+            padding: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            background: white;
+        }
+
+        .autocomplete {
+            position: relative;
+        }
+
+        .autocomplete-hint {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .autocomplete-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .autocomplete-suggestions.show {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .suggestion-item:hover {
+            background: #f8f9fa;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .suggestion-dosage {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .settings-group {
+            margin-bottom: 20px;
+        }
+
+        .settings-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: #ccc;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #667eea;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: 26px;
+        }
+
+        .pin-input-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .pin-digit {
+            width: 50px;
+            height: 60px;
+            font-size: 2em;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .pin-digit:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .account-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .account-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .account-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .account-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .account-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .install-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .install-banner.show {
+            display: flex;
+        }
+
+        .install-text {
+            flex: 1;
+        }
+
+        .install-btn {
+            background: white;
+            color: #667eea;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .nav-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            color: #999;
+            transition: all 0.2s;
+            border: none;
+            background: none;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+        }
+
+        .nav-icon {
+            font-size: 1.5em;
+        }
+
+        .nav-label {
+            font-size: 0.8em;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+                padding-bottom: 80px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💊 Supplemedication Tracker</h1>
+            <div class="header-buttons">
+                <button class="header-btn" id="accountBtn">
+                    <span id="accountBtnText">👤 Create Account</span>
+                </button>
+                <button class="header-btn" id="reminderBtn">
+                    <span id="reminderBtnText">🔔 Reminder Settings</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="install-banner" id="installBanner">
+            <div class="install-text">
+                <strong>📲 Install App</strong><br>
+                Add to home screen for better experience
+            </div>
+            <button class="install-btn" id="installBtn">Install</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="today">Today</button>
+            <button class="tab" data-tab="manage">Manage</button>
+            <button class="tab" data-tab="stats">Stats</button>
+        </div>
+
+        <!-- Today Tab -->
+        <div id="todayTab" class="tab-content">
+            <div class="card">
+                <div class="time-section" id="morningSection">
+                    <div class="time-header">
+                        <span class="time-icon">🌅</span>
+                        <span class="time-label">Morning</span>
+                    </div>
+                    <div id="morningList"></div>
+                </div>
+
+                <div class="time-section" id="afternoonSection">
+                    <div class="time-header">
+                        <span class="time-icon">☀️</span>
+                        <span class="time-label">Afternoon</span>
+                    </div>
+                    <div id="afternoonList"></div>
+                </div>
+
+                <div class="time-section" id="eveningSection">
+                    <div class="time-header">
+                        <span class="time-icon">🌙</span>
+                        <span class="time-label">Evening</span>
+                    </div>
+                    <div id="eveningList"></div>
+                </div>
+
+                <div class="time-section" id="asNeededSection">
+                    <div class="time-header">
+                        <span class="time-icon">💊</span>
+                        <span class="time-label">As Needed</span>
+                    </div>
+                    <div id="asNeededList"></div>
+                </div>
+
+                <div class="time-section" id="everyOtherDaySection">
+                    <div class="time-header">
+                        <span class="time-icon">📅</span>
+                        <span class="time-label">Every Other Day</span>
+                    </div>
+                    <div id="everyOtherDayList"></div>
+                </div>
+
+                <div class="time-section" id="weeklySection">
+                    <div class="time-header">
+                        <span class="time-icon">📆</span>
+                        <span class="time-label">Weekly</span>
+                    </div>
+                    <div id="weeklyList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Tab -->
+        <div id="manageTab" class="tab-content" style="display: none;">
+            <div class="card">
+                <button class="add-btn" id="addBtn">+ Add Supplement</button>
+            </div>
+            <div class="card" id="supplementsList"></div>
+        </div>
+
+        <!-- Stats Tab -->
+        <div id="statsTab" class="tab-content" style="display: none;">
+            <div class="card">
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-number" id="streakStat">0</div>
+                        <div class="stat-label">Day Streak 🔥</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="todayStat">0%</div>
+                        <div class="stat-label">Today</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="totalStat">0</div>
+                        <div class="stat-label">Supplements</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            powered by noneed.dev
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <div class="modal-header">Add Supplement</div>
+            <form id="supplementForm">
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <div class="autocomplete">
+                        <input type="text" class="form-input" id="supplementName" autocomplete="off" required>
+                        <div class="autocomplete-hint">💡 Start typing to see suggestions</div>
+                        <div class="autocomplete-suggestions" id="suggestions"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Dosage</label>
+                    <input type="text" class="form-input" id="supplementDosage" placeholder="e.g., 500mg">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Frequency</label>
+                    <select class="form-select" id="supplementFrequency">
+                        <option value="daily-morning">Daily Morning</option>
+                        <option value="daily-afternoon">Daily Afternoon</option>
+                        <option value="daily-evening">Daily Evening</option>
+                        <option value="twice-daily">Twice Daily</option>
+                        <option value="every-other-day">Every Other Day</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="as-needed">As Needed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes (optional)</label>
+                    <input type="text" class="form-input" id="supplementNotes">
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Supplement</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reminder Settings Modal -->
+    <div class="modal" id="reminderModal">
+        <div class="modal-content">
+            <div class="modal-header">🔔 Reminder Settings</div>
+            
+            <div class="form-group">
+                <label class="form-label">Reminder Frequency</label>
+                <select class="form-select" id="reminderFrequency">
+                    <option value="once">Once Daily</option>
+                    <option value="twice">Twice Daily</option>
+                    <option value="every-other">Every Other Day</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="morningTimeGroup">
+                <label class="form-label">⏰ <span id="morningLabel">Morning Time</span></label>
+                <input type="time" class="form-input" id="morningTime" value="09:00">
+            </div>
+
+            <div class="form-group" id="eveningTimeGroup" style="display: none;">
+                <label class="form-label">⏰ Evening Time</label>
+                <input type="time" class="form-input" id="eveningTime" value="21:00">
+            </div>
+
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin: 20px 0; font-size: 0.9em; color: #666;">
+                <strong>ℹ️ How it works:</strong>
+                <ul style="margin: 10px 0 0 20px; padding: 0;">
+                    <li>Downloads a calendar file (.ics)</li>
+                    <li>Add to your iPhone/Android calendar</li>
+                    <li>Get native notifications with link to app</li>
+                </ul>
+                <br>
+                <strong>⚠️ Already have reminders?</strong><br>
+                Delete old calendar events before creating new ones
+            </div>
+
+            <div class="form-buttons">
+                <button type="button" class="btn btn-secondary" id="cancelReminderBtn">Cancel</button>
+                <button type="button" class="btn btn-primary" id="generateReminderBtn">📅 Generate Calendar Reminder</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Account Modal -->
+    <div class="modal" id="createAccountModal">
+        <div class="modal-content">
+            <div class="modal-header">👤 Create Account</div>
+            
+            <div class="form-group">
+                <label class="form-label">What's your name?</label>
+                <input type="text" class="form-input" id="accountName" placeholder="Enter your name" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Create a 4-digit PIN</label>
+                <div class="pin-input-container">
+                    <input type="password" maxlength="1" class="pin-digit" id="pin1" inputmode="numeric" pattern="[0-9]">
+                    <input type="password" maxlength="1" class="pin-digit" id="pin2" inputmode="numeric" pattern="[0-9]">
+                    <input type="password" maxlength="1" class="pin-digit" id="pin3" inputmode="numeric" pattern="[0-9]">
+                    <input type="password" maxlength="1" class="pin-digit" id="pin4" inputmode="numeric" pattern="[0-9]">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Confirm PIN</label>
+                <div class="pin-input-container">
+                    <input type="password" maxlength="1" class="pin-digit" id="confirmPin1" inputmode="numeric" pattern="[0-9]">
+                    <input type="password" maxlength="1" class="pin-digit" id="confirmPin2" inputmode="numeric" pattern="[0-9]">
+                    <input type="password" maxlength="1" class="pin-digit" id="confirmPin3" inputmode="numeric" pattern="[0-9]">
+                    <input type="password" maxlength="1" class="pin-digit" id="confirmPin4" inputmode="numeric" pattern="[0-9]">
+                </div>
+            </div>
+
+            <div class="form-buttons">
+                <button type="button" class="btn btn-secondary" id="cancelCreateAccountBtn">Cancel</button>
+                <button type="button" class="btn btn-primary" id="createAccountSubmitBtn">Create Account</button>
+            </div>
+
+            <div style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9em;">
+                Already have an account? <a href="#" id="switchToLoginBtn" style="color: #667eea; font-weight: 600;">Login</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">Welcome Back!</div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <div style="font-size: 1.2em; color: #666;">Enter your 4-digit PIN</div>
+            </div>
+
+            <div class="form-group">
+                <div class="pin-input-container">
+                    <input type="password" maxlength="1" class="pin-digit" id="loginPin1" inputmode="numeric" pattern="[0-9]">
+                    <input type="password" maxlength="1" class="pin-digit" id="loginPin2" inputmode="numeric" pattern="[0-9]">
+                    <input type="password" maxlength="1" class="pin-digit" id="loginPin3" inputmode="numeric" pattern="[0-9]">
+                    <input type="password" maxlength="1" class="pin-digit" id="loginPin4" inputmode="numeric" pattern="[0-9]">
+                </div>
+            </div>
+
+            <div id="loginError" style="color: #dc3545; text-align: center; margin: 10px 0; display: none;">
+                Incorrect PIN. Please try again.
+            </div>
+
+            <div class="form-buttons">
+                <button type="button" class="btn btn-secondary" id="cancelLoginBtn">Cancel</button>
+                <button type="button" class="btn btn-primary" id="loginSubmitBtn">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Info Modal -->
+    <div class="modal" id="accountInfoModal">
+        <div class="modal-content">
+            <div class="modal-header">👤 Account</div>
+            
+            <div class="account-info">
+                <div class="account-info-item">
+                    <span class="account-label">Name</span>
+                    <span class="account-value" id="accountDisplayName">-</span>
+                </div>
+                <div class="account-info-item">
+                    <span class="account-label">Total Supplements</span>
+                    <span class="account-value" id="accountTotalSupplements">0</span>
+                </div>
+                <div class="account-info-item">
+                    <span class="account-label">Current Streak</span>
+                    <span class="account-value" id="accountStreak">0 days</span>
+                </div>
+            </div>
+
+            <div class="form-buttons">
+                <button type="button" class="btn btn-secondary" id="logoutBtn">Logout</button>
+                <button type="button" class="btn btn-primary" id="closeAccountInfoBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase (only once!)
+        const SUPABASE_URL = 'https://ocowlqvvrhcplhzzbhjk.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_ySjsURaOvpxP1-mg6o2NVQ_uy9zNOIW';
+        
+        // Use a global variable to ensure single initialization
+        let supabase;
+        if (!window.appSupabase) {
+            window.appSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
+        supabase = window.appSupabase;
+
+        // Account management
+        let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        let reminderSetup = localStorage.getItem('reminderSetup') === 'true';
+        
+        // Data Storage
+        let supplements = JSON.parse(localStorage.getItem('supplements') || '[]');
+        let history = JSON.parse(localStorage.getItem('history') || '{}');
+
+        // Better hash function using Web Crypto API
+        async function hashPIN(pin) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(pin);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Sync supplements to Supabase
+        async function syncSupplementsToSupabase() {
+            if (!currentUser || !currentUser.id) return;
+
+            try {
+                // Get all supplements from Supabase
+                const { data: cloudSupplements, error } = await supabase
+                    .from('supplements')
+                    .select('*')
+                    .eq('user_id', currentUser.id);
+
+                if (error) throw error;
+
+                // Update local storage
+                if (cloudSupplements) {
+                    supplements = cloudSupplements.map(s => ({
+                        id: s.id,
+                        name: s.name,
+                        dosage: s.dosage,
+                        frequency: s.frequency,
+                        notes: s.notes
+                    }));
+                    saveSupplements();
+                }
+            } catch (error) {
+                console.error('Sync error:', error);
+            }
+        }
+
+        // Sync history to Supabase
+        async function syncHistoryToSupabase() {
+            if (!currentUser || !currentUser.id) return;
+
+            try {
+                // Get all history from Supabase
+                const { data: cloudHistory, error } = await supabase
+                    .from('history')
+                    .select('supplement_id, date, tracking_time')
+                    .eq('user_id', currentUser.id);
+
+                if (error) throw error;
+
+                // Convert to our local format
+                if (cloudHistory) {
+                    const newHistory = {};
+                    cloudHistory.forEach(h => {
+                        if (!newHistory[h.date]) newHistory[h.date] = {};
+                        const key = h.tracking_time ? `${h.supplement_id}-${h.tracking_time}` : h.supplement_id;
+                        newHistory[h.date][key] = true;
+                    });
+                    history = newHistory;
+                    saveHistory();
+                }
+            } catch (error) {
+                console.error('History sync error:', error);
+            }
+        }
+
+        // PIN input auto-advance
+        function setupPINInputs(prefix) {
+            const pins = [
+                document.getElementById(`${prefix}1`),
+                document.getElementById(`${prefix}2`),
+                document.getElementById(`${prefix}3`),
+                document.getElementById(`${prefix}4`)
+            ];
+
+            pins.forEach((pin, index) => {
+                pin.addEventListener('input', (e) => {
+                    if (e.target.value && index < 3) {
+                        pins[index + 1].focus();
+                    }
+                });
+
+                pin.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        pins[index - 1].focus();
+                    }
+                });
+            });
+        }
+
+        // Get PIN from inputs
+        function getPIN(prefix) {
+            return document.getElementById(`${prefix}1`).value +
+                   document.getElementById(`${prefix}2`).value +
+                   document.getElementById(`${prefix}3`).value +
+                   document.getElementById(`${prefix}4`).value;
+        }
+
+        // Clear PIN inputs
+        function clearPINInputs(prefix) {
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`${prefix}${i}`).value = '';
+            }
+            document.getElementById(`${prefix}1`).focus();
+        }
+
+        // Update button states
+        function updateHeaderButtons() {
+            const accountBtnText = document.getElementById('accountBtnText');
+            const reminderBtnText = document.getElementById('reminderBtnText');
+
+            if (currentUser) {
+                accountBtnText.textContent = `👤 Hi ${currentUser.name}`;
+            } else {
+                accountBtnText.textContent = '👤 Create Account';
+            }
+
+            if (reminderSetup) {
+                reminderBtnText.textContent = '🔔 Edit Reminders';
+            } else {
+                reminderBtnText.textContent = '🔔 Reminder Settings';
+            }
+        }
+
+        // Update stats page personalization
+        function updateStatsPersonalization() {
+            const todayStatLabel = document.getElementById('todayStat').parentElement.querySelector('.stat-label');
+            
+            if (currentUser) {
+                // Update stats page with personalized greeting
+                const statsCard = document.getElementById('statsTab').querySelector('.card');
+                const statsDiv = statsCard.querySelector('.stats');
+                
+                // Check if greeting already exists
+                let greeting = statsCard.querySelector('.stats-greeting');
+                if (!greeting) {
+                    greeting = document.createElement('div');
+                    greeting.className = 'stats-greeting';
+                    greeting.style.cssText = 'font-size: 1.5em; font-weight: 600; color: #333; margin-bottom: 20px; text-align: center;';
+                    statsCard.insertBefore(greeting, statsDiv);
+                }
+                greeting.textContent = `Hey ${currentUser.name}! 👋`;
+            }
+        }
+
+        // Common supplements database
+        const commonSupplements = [
+            // Vitamins
+            { name: 'Vitamin D3', dosage: '1000-5000 IU', notes: 'Morning with fatty meal' },
+            { name: 'Vitamin C', dosage: '500-1000mg', notes: 'Morning or throughout day' },
+            { name: 'Vitamin A', dosage: '3000-10000 IU', notes: 'Take with food' },
+            { name: 'Vitamin E', dosage: '200-400 IU', notes: 'Take with fatty meal' },
+            { name: 'Vitamin K2', dosage: '100-200mcg', notes: 'Take with D3 and fatty meal' },
+            { name: 'B Complex', dosage: '1 tablet', notes: 'Morning with food' },
+            { name: 'Vitamin B1 (Thiamine)', dosage: '50-100mg', notes: 'Morning with food' },
+            { name: 'Vitamin B2 (Riboflavin)', dosage: '50-100mg', notes: 'Morning with food' },
+            { name: 'Vitamin B3 (Niacin)', dosage: '50-100mg', notes: 'Take with food to avoid flush' },
+            { name: 'Vitamin B6', dosage: '50-100mg', notes: 'Morning with food' },
+            { name: 'Vitamin B12', dosage: '1000mcg', notes: 'Morning, sublingual preferred' },
+            { name: 'Folate/Folic Acid', dosage: '400-800mcg', notes: 'Morning with food' },
+            { name: 'Biotin', dosage: '5000-10000mcg', notes: 'Morning with food' },
+            
+            // Minerals
+            { name: 'Magnesium', dosage: '200-400mg', notes: 'Evening for better sleep' },
+            { name: 'Magnesium Glycinate', dosage: '200-400mg', notes: 'Evening, gentle on stomach' },
+            { name: 'Magnesium Citrate', dosage: '200-400mg', notes: 'May have laxative effect' },
+            { name: 'Zinc', dosage: '15-30mg', notes: 'With food to avoid nausea' },
+            { name: 'Iron', dosage: '18-65mg', notes: 'Morning with vitamin C, not with calcium' },
+            { name: 'Calcium', dosage: '500-1000mg', notes: 'Split doses, take with food' },
+            { name: 'Potassium', dosage: '99mg', notes: 'With food' },
+            { name: 'Selenium', dosage: '100-200mcg', notes: 'With food' },
+            { name: 'Chromium', dosage: '200-400mcg', notes: 'With meals' },
+            { name: 'Copper', dosage: '1-2mg', notes: 'Balance with zinc' },
+            { name: 'Iodine', dosage: '150-300mcg', notes: 'Morning with food' },
+            
+            // Omega & Fatty Acids
+            { name: 'Omega-3 Fish Oil', dosage: '1000-2000mg', notes: 'With meals' },
+            { name: 'Krill Oil', dosage: '500-1000mg', notes: 'With meals' },
+            { name: 'Flaxseed Oil', dosage: '1000-2000mg', notes: 'With meals' },
+            { name: 'Evening Primrose Oil', dosage: '500-1000mg', notes: 'With meals' },
+            { name: 'MCT Oil', dosage: '1 tablespoon', notes: 'Morning or with coffee' },
+            
+            // Amino Acids & Protein
+            { name: 'Protein Powder', dosage: '20-30g', notes: 'Post-workout or as meal replacement' },
+            { name: 'Creatine', dosage: '3-5g', notes: 'Any time of day with water' },
+            { name: 'L-Theanine', dosage: '100-200mg', notes: 'Morning or afternoon for calm focus' },
+            { name: 'L-Carnitine', dosage: '500-2000mg', notes: 'Morning on empty stomach' },
+            { name: 'L-Glutamine', dosage: '5-10g', notes: 'Post-workout' },
+            { name: 'BCAAs', dosage: '5-10g', notes: 'Before or during workout' },
+            { name: 'Collagen', dosage: '10-20g', notes: 'Any time, mix in drinks' },
+            { name: '5-HTP', dosage: '50-200mg', notes: 'Evening for sleep and mood' },
+            
+            // Herbal Supplements
+            { name: 'Turmeric/Curcumin', dosage: '500-1000mg', notes: 'With black pepper and fat' },
+            { name: 'Ashwagandha', dosage: '300-500mg', notes: 'Evening for stress relief' },
+            { name: 'Rhodiola Rosea', dosage: '200-400mg', notes: 'Morning for energy and focus' },
+            { name: 'Ginkgo Biloba', dosage: '120-240mg', notes: 'Morning for cognitive support' },
+            { name: 'St. John\'s Wort', dosage: '300mg', notes: 'Morning, check drug interactions' },
+            { name: 'Milk Thistle', dosage: '150-300mg', notes: 'With meals for liver support' },
+            { name: 'Ginseng', dosage: '200-400mg', notes: 'Morning for energy' },
+            { name: 'Echinacea', dosage: '300-500mg', notes: 'At first sign of cold' },
+            { name: 'Valerian Root', dosage: '300-600mg', notes: '30-60 min before bed' },
+            { name: 'Maca Root', dosage: '1500-3000mg', notes: 'Morning for energy' },
+            { name: 'Spirulina', dosage: '1-3g', notes: 'Morning with water' },
+            { name: 'Chlorella', dosage: '2-3g', notes: 'Morning for detox' },
+            
+            // Cognitive & Mood
+            { name: 'CoQ10', dosage: '100-200mg', notes: 'Morning with fatty meal' },
+            { name: 'Alpha-GPC', dosage: '300-600mg', notes: 'Morning for focus' },
+            { name: 'Lion\'s Mane', dosage: '500-1000mg', notes: 'Morning for cognitive health' },
+            { name: 'Bacopa Monnieri', dosage: '300mg', notes: 'With meals' },
+            { name: 'Phosphatidylserine', dosage: '100-300mg', notes: 'Evening' },
+            
+            // Digestive Health
+            { name: 'Probiotics', dosage: '10-50 billion CFU', notes: 'Morning on empty stomach' },
+            { name: 'Digestive Enzymes', dosage: '1-2 capsules', notes: 'With each meal' },
+            { name: 'Apple Cider Vinegar', dosage: '1-2 tablespoons', notes: 'Before meals with water' },
+            { name: 'Psyllium Husk', dosage: '5-10g', notes: 'With plenty of water' },
+            { name: 'L-Glutamine', dosage: '5g', notes: 'For gut health' },
+            
+            // Sleep & Relaxation
+            { name: 'Melatonin', dosage: '0.5-5mg', notes: '30-60 min before bed' },
+            { name: 'Magnesium Glycinate', dosage: '400mg', notes: 'Before bed for sleep' },
+            { name: 'GABA', dosage: '250-750mg', notes: 'Evening for relaxation' },
+            { name: 'Glycine', dosage: '3g', notes: 'Before bed for sleep quality' },
+            
+            // Joint & Bone Health
+            { name: 'Glucosamine', dosage: '1500mg', notes: 'With meals for joint health' },
+            { name: 'Chondroitin', dosage: '1200mg', notes: 'With meals for joint health' },
+            { name: 'MSM', dosage: '1000-3000mg', notes: 'With meals' },
+            
+            // Heart & Circulation
+            { name: 'Garlic Extract', dosage: '600-1200mg', notes: 'With meals for heart health' },
+            { name: 'Beetroot Powder', dosage: '3-6g', notes: 'Morning for circulation' },
+            { name: 'Red Yeast Rice', dosage: '1200mg', notes: 'Evening with food' },
+            { name: 'L-Arginine', dosage: '2-3g', notes: 'Before workout' },
+            
+            // General Wellness
+            { name: 'Multivitamin', dosage: '1 tablet', notes: 'Morning with food' },
+            { name: 'Greens Powder', dosage: '1 scoop', notes: 'Morning in water or smoothie' },
+            { name: 'Apple Cider Vinegar Gummies', dosage: '2 gummies', notes: 'Before meals' },
+            { name: 'Elderberry', dosage: '500-1000mg', notes: 'Daily for immune support' },
+            
+            // Common OTC Medications
+            { name: 'Aspirin', dosage: '81-325mg', notes: 'With food, consult doctor' },
+            { name: 'Ibuprofen', dosage: '200-400mg', notes: 'With food every 4-6 hours' },
+            { name: 'Acetaminophen', dosage: '325-650mg', notes: 'Every 4-6 hours, max 3000mg/day' },
+            { name: 'Naproxen', dosage: '220-440mg', notes: 'Every 8-12 hours with food' },
+            { name: 'Diphenhydramine', dosage: '25-50mg', notes: 'For allergies or sleep' },
+            { name: 'Loratadine', dosage: '10mg', notes: 'Once daily for allergies' },
+            { name: 'Cetirizine', dosage: '10mg', notes: 'Once daily for allergies' },
+            { name: 'Fexofenadine', dosage: '180mg', notes: 'Once daily for allergies' },
+            { name: 'Omeprazole', dosage: '20mg', notes: 'Morning before eating' },
+            { name: 'Famotidine', dosage: '20mg', notes: 'Before meals or at bedtime' },
+            { name: 'Loperamide', dosage: '2mg', notes: 'After loose stool' },
+            { name: 'Bismuth Subsalicylate', dosage: '262mg', notes: 'For upset stomach' },
+            
+            // Common Prescription (for tracking)
+            { name: 'Levothyroxine', dosage: 'As prescribed', notes: 'Morning on empty stomach, 30 min before food' },
+            { name: 'Metformin', dosage: 'As prescribed', notes: 'With meals' },
+            { name: 'Lisinopril', dosage: 'As prescribed', notes: 'Same time daily' },
+            { name: 'Atorvastatin', dosage: 'As prescribed', notes: 'Evening with or without food' },
+            { name: 'Amlodipine', dosage: 'As prescribed', notes: 'Same time daily' },
+            { name: 'Sertraline', dosage: 'As prescribed', notes: 'Morning or evening consistently' },
+            { name: 'Escitalopram', dosage: 'As prescribed', notes: 'Same time daily' },
+            { name: 'Fluoxetine', dosage: 'As prescribed', notes: 'Morning' },
+            { name: 'Gabapentin', dosage: 'As prescribed', notes: 'Evenly spaced throughout day' },
+            { name: 'Pantoprazole', dosage: 'As prescribed', notes: '30 min before first meal' }
+        ];
+
+        // Autocomplete functionality
+        const nameInput = document.getElementById('supplementName');
+        const dosageInput = document.getElementById('supplementDosage');
+        const notesInput = document.getElementById('supplementNotes');
+        const suggestionsDiv = document.getElementById('suggestions');
+
+        nameInput.addEventListener('input', (e) => {
+            const value = e.target.value.toLowerCase().trim();
+            
+            if (value.length < 2) {
+                suggestionsDiv.classList.remove('show');
+                return;
+            }
+
+            const matches = commonSupplements.filter(s => 
+                s.name.toLowerCase().includes(value)
+            );
+
+            if (matches.length === 0) {
+                suggestionsDiv.classList.remove('show');
+                return;
+            }
+
+            suggestionsDiv.innerHTML = matches.map(s => `
+                <div class="suggestion-item" data-name="${s.name}" data-dosage="${s.dosage}" data-notes="${s.notes}">
+                    <div class="suggestion-name">${s.name}</div>
+                    <div class="suggestion-dosage">${s.dosage}</div>
+                </div>
+            `).join('');
+
+            suggestionsDiv.classList.add('show');
+
+            // Add click handlers to suggestions
+            suggestionsDiv.querySelectorAll('.suggestion-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    nameInput.value = item.dataset.name;
+                    dosageInput.value = item.dataset.dosage;
+                    notesInput.value = item.dataset.notes;
+                    suggestionsDiv.classList.remove('show');
+                });
+            });
+        });
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.autocomplete')) {
+                suggestionsDiv.classList.remove('show');
+            }
+        });
+
+        // Get today's date string
+        function getTodayString() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        // Initialize today's history if needed
+        function initToday() {
+            const today = getTodayString();
+            if (!history[today]) {
+                history[today] = {};
+                saveHistory();
+            }
+        }
+
+        // Save data
+        function saveSupplements() {
+            localStorage.setItem('supplements', JSON.stringify(supplements));
+        }
+
+        function saveHistory() {
+            localStorage.setItem('history', JSON.stringify(history));
+        }
+
+        // Toggle taken status
+        async function toggleTaken(id, time) {
+            const today = getTodayString();
+            const key = time ? `${id}-${time}` : id;
+            const isTaken = history[today] && history[today][key];
+            
+            try {
+                if (currentUser && currentUser.id) {
+                    if (isTaken) {
+                        // Delete from Supabase
+                        const { error } = await supabase
+                            .from('history')
+                            .delete()
+                            .eq('user_id', currentUser.id)
+                            .eq('supplement_id', id)
+                            .eq('date', today)
+                            .eq('tracking_time', time || null);
+
+                        if (error) throw error;
+                    } else {
+                        // Add to Supabase
+                        const { error } = await supabase
+                            .from('history')
+                            .insert([{
+                                user_id: currentUser.id,
+                                supplement_id: id,
+                                date: today,
+                                tracking_time: time || null
+                            }]);
+
+                        if (error && !error.message.includes('duplicate')) throw error;
+                    }
+                }
+
+                // Update local
+                if (!history[today][key]) {
+                    history[today][key] = true;
+                } else {
+                    delete history[today][key];
+                }
+                
+                saveHistory();
+                renderToday();
+                updateStats();
+            } catch (error) {
+                console.error('Error toggling taken status:', error);
+            }
+        }
+
+        // Check if supplement is taken today
+        function isTakenToday(id, time) {
+            const today = getTodayString();
+            const key = time ? `${id}-${time}` : id;
+            return history[today] && history[today][key];
+        }
+
+        // Get supplements for a specific time
+        function getSupplementsForTime(time) {
+            return supplements.filter(s => {
+                if (time === 'as-needed') return s.frequency === 'as-needed';
+                if (time === 'weekly') return s.frequency === 'weekly';
+                if (time === 'every-other-day') {
+                    if (s.frequency !== 'every-other-day') return false;
+                    const today = new Date();
+                    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+                    return dayOfYear % 2 === 0;
+                }
+                if (s.frequency === `daily-${time}`) return true;
+                if (s.frequency === 'twice-daily' && (time === 'morning' || time === 'evening')) return true;
+                return false;
+            });
+        }
+
+        // Render today's supplements
+        function renderToday() {
+            const times = ['morning', 'afternoon', 'evening', 'as-needed', 'every-other-day', 'weekly'];
+            
+            times.forEach(time => {
+                let listId;
+                if (time === 'as-needed') listId = 'asNeededList';
+                else if (time === 'every-other-day') listId = 'everyOtherDayList';
+                else if (time === 'weekly') listId = 'weeklyList';
+                else listId = `${time}List`;
+                
+                const list = document.getElementById(listId);
+                const timeSupplements = getSupplementsForTime(time);
+                
+                if (timeSupplements.length === 0) {
+                    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💊</div><div>No supplements for this time</div></div>';
+                    return;
+                }
+                
+                list.innerHTML = timeSupplements.map(s => {
+                    // For twice-daily, track separately for morning/evening
+                    const trackingTime = s.frequency === 'twice-daily' ? time : null;
+                    const taken = isTakenToday(s.id, trackingTime);
+                    
+                    const freqLabel = {
+                        'daily-morning': 'Daily Morning',
+                        'daily-afternoon': 'Daily Afternoon',
+                        'daily-evening': 'Daily Evening',
+                        'twice-daily': 'Twice Daily',
+                        'every-other-day': 'Every Other Day',
+                        'weekly': 'Weekly',
+                        'as-needed': 'As Needed'
+                    }[s.frequency] || s.frequency;
+                    
+                    return `
+                        <div class="supplement-item ${taken ? 'taken' : ''}">
+                            <div class="checkbox ${taken ? 'checked' : ''}" onclick="toggleTaken('${s.id}', '${trackingTime || ''}')"></div>
+                            <div class="supplement-info">
+                                <div class="supplement-name">${s.name}</div>
+                                <div class="supplement-dosage">${s.dosage} • ${freqLabel}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        // Render manage list
+        function renderManage() {
+            const list = document.getElementById('supplementsList');
+            
+            if (supplements.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💊</div><div>No supplements added yet</div></div>';
+                return;
+            }
+            
+            list.innerHTML = '<div class="manage-list">' + supplements.map(s => {
+                const freqLabel = {
+                    'daily-morning': 'Daily Morning',
+                    'daily-afternoon': 'Daily Afternoon',
+                    'daily-evening': 'Daily Evening',
+                    'twice-daily': 'Twice Daily',
+                    'every-other-day': 'Every Other Day',
+                    'weekly': 'Weekly',
+                    'as-needed': 'As Needed'
+                }[s.frequency] || s.frequency;
+                
+                return `
+                    <div class="manage-item">
+                        <div class="manage-info">
+                            <div class="manage-name">${s.name}</div>
+                            <div class="manage-details">${s.dosage} • ${freqLabel}</div>
+                            ${s.notes ? `<div class="manage-details">${s.notes}</div>` : ''}
+                        </div>
+                        <div class="manage-actions">
+                            <button class="icon-btn edit-btn" onclick="editSupplement('${s.id}')" title="Edit">✏️</button>
+                            <button class="icon-btn delete-btn" onclick="deleteSupplement('${s.id}')" title="Delete">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('') + '</div>';
+        }
+
+        // Update stats
+        function updateStats() {
+            const today = getTodayString();
+            
+            // Count total instances (twice-daily counts as 2)
+            // Only count daily supplements for completion percentage
+            let totalInstances = 0;
+            let takenInstances = 0;
+            
+            supplements.forEach(s => {
+                if (s.frequency.startsWith('daily-')) {
+                    totalInstances += 1;
+                    if (isTakenToday(s.id)) takenInstances += 1;
+                } else if (s.frequency === 'twice-daily') {
+                    totalInstances += 2; // Counts as 2 instances
+                    if (isTakenToday(s.id, 'morning')) takenInstances += 1;
+                    if (isTakenToday(s.id, 'evening')) takenInstances += 1;
+                }
+                // as-needed, weekly, every-other-day don't count towards daily completion
+            });
+            
+            const percentage = totalInstances > 0 ? Math.round((takenInstances / totalInstances) * 100) : 0;
+            
+            document.getElementById('todayStat').textContent = percentage + '%';
+            document.getElementById('totalStat').textContent = supplements.length;
+            
+            // Calculate streak
+            let streak = 0;
+            const dates = Object.keys(history).sort().reverse();
+            for (let date of dates) {
+                let dateTotal = 0;
+                let dateTaken = 0;
+                
+                supplements.forEach(s => {
+                    if (s.frequency.startsWith('daily-')) {
+                        dateTotal += 1;
+                        if (history[date] && history[date][s.id]) dateTaken += 1;
+                    } else if (s.frequency === 'twice-daily') {
+                        dateTotal += 2;
+                        if (history[date] && history[date][`${s.id}-morning`]) dateTaken += 1;
+                        if (history[date] && history[date][`${s.id}-evening`]) dateTaken += 1;
+                    }
+                });
+                
+                if (dateTaken === dateTotal && dateTotal > 0) {
+                    streak++;
+                } else if (date !== getTodayString()) {
+                    break;
+                }
+            }
+            document.getElementById('streakStat').textContent = streak;
+        }
+
+        // Add supplement
+        let editingId = null;
+
+        document.getElementById('supplementForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const supplement = {
+                name: document.getElementById('supplementName').value,
+                dosage: document.getElementById('supplementDosage').value,
+                frequency: document.getElementById('supplementFrequency').value,
+                notes: document.getElementById('supplementNotes').value
+            };
+            
+            try {
+                if (editingId) {
+                    // Update existing
+                    if (currentUser && currentUser.id) {
+                        // Update in Supabase
+                        const { error } = await supabase
+                            .from('supplements')
+                            .update(supplement)
+                            .eq('id', editingId)
+                            .eq('user_id', currentUser.id);
+
+                        if (error) throw error;
+                    }
+
+                    // Update local
+                    const index = supplements.findIndex(s => s.id === editingId);
+                    supplements[index] = { ...supplement, id: editingId };
+                    editingId = null;
+                } else {
+                    // Add new
+                    if (currentUser && currentUser.id) {
+                        // Add to Supabase
+                        const { data, error } = await supabase
+                            .from('supplements')
+                            .insert([{ ...supplement, user_id: currentUser.id }])
+                            .select()
+                            .single();
+
+                        if (error) throw error;
+
+                        supplements.push({ ...supplement, id: data.id });
+                    } else {
+                        // Add locally only
+                        supplements.push({ ...supplement, id: Date.now().toString() });
+                    }
+                }
+                
+                saveSupplements();
+                
+                document.getElementById('addModal').classList.remove('active');
+                document.getElementById('supplementForm').reset();
+                document.querySelector('.modal-header').textContent = 'Add Supplement';
+                
+                renderToday();
+                renderManage();
+                updateStats();
+            } catch (error) {
+                console.error('Error saving supplement:', error);
+                alert('Error saving supplement. Please try again.');
+            }
+        });
+
+        // Edit supplement
+        function editSupplement(id) {
+            const supplement = supplements.find(s => s.id === id);
+            if (!supplement) return;
+            
+            editingId = id;
+            document.getElementById('supplementName').value = supplement.name;
+            document.getElementById('supplementDosage').value = supplement.dosage;
+            document.getElementById('supplementFrequency').value = supplement.frequency;
+            document.getElementById('supplementNotes').value = supplement.notes;
+            
+            document.querySelector('.modal-header').textContent = 'Edit Supplement';
+            document.getElementById('addModal').classList.add('active');
+        }
+
+        // Delete supplement
+        async function deleteSupplement(id) {
+            if (confirm('Are you sure you want to delete this supplement?')) {
+                try {
+                    if (currentUser && currentUser.id) {
+                        // Delete from Supabase (will cascade delete history)
+                        const { error } = await supabase
+                            .from('supplements')
+                            .delete()
+                            .eq('id', id)
+                            .eq('user_id', currentUser.id);
+
+                        if (error) throw error;
+                    }
+
+                    // Delete locally
+                    supplements = supplements.filter(s => s.id !== id);
+                    saveSupplements();
+                    renderToday();
+                    renderManage();
+                    updateStats();
+                } catch (error) {
+                    console.error('Error deleting supplement:', error);
+                    alert('Error deleting supplement. Please try again.');
+                }
+            }
+        }
+
+        // Modal controls
+        document.getElementById('addBtn').addEventListener('click', () => {
+            editingId = null;
+            document.querySelector('.modal-header').textContent = 'Add Supplement';
+            document.getElementById('addModal').classList.add('active');
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            editingId = null;
+            document.getElementById('addModal').classList.remove('active');
+            document.getElementById('supplementForm').reset();
+            document.querySelector('.modal-header').textContent = 'Add Supplement';
+        });
+
+        // Reminder settings modal controls
+        document.getElementById('reminderBtn').addEventListener('click', () => {
+            document.getElementById('reminderModal').classList.add('active');
+        });
+
+        document.getElementById('cancelReminderBtn').addEventListener('click', () => {
+            document.getElementById('reminderModal').classList.remove('active');
+        });
+
+        // Account button handler
+        document.getElementById('accountBtn').addEventListener('click', () => {
+            if (currentUser) {
+                // Show account info
+                document.getElementById('accountDisplayName').textContent = currentUser.name;
+                document.getElementById('accountTotalSupplements').textContent = supplements.length;
+                const streak = parseInt(document.getElementById('streakStat').textContent);
+                document.getElementById('accountStreak').textContent = `${streak} day${streak !== 1 ? 's' : ''}`;
+                document.getElementById('accountInfoModal').classList.add('active');
+            } else {
+                // Show create account modal (users can login from there if needed)
+                document.getElementById('createAccountModal').classList.add('active');
+            }
+        });
+
+        // Setup PIN inputs
+        setupPINInputs('pin');
+        setupPINInputs('confirmPin');
+        setupPINInputs('loginPin');
+
+        // Create account
+        document.getElementById('createAccountSubmitBtn').addEventListener('click', async () => {
+            const name = document.getElementById('accountName').value.trim();
+            const pin = getPIN('pin');
+            const confirmPin = getPIN('confirmPin');
+
+            if (!name) {
+                alert('Please enter your name');
+                return;
+            }
+
+            if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+                alert('Please enter a 4-digit PIN');
+                return;
+            }
+
+            if (pin !== confirmPin) {
+                alert('PINs do not match');
+                clearPINInputs('confirmPin');
+                return;
+            }
+
+            // Show loading
+            const btn = document.getElementById('createAccountSubmitBtn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Creating...';
+            btn.disabled = true;
+
+            try {
+                // Hash the PIN
+                const pinHash = await hashPIN(pin);
+
+                // Check if this name + PIN combination already exists
+                const { data: existingUsers, error: checkError } = await supabase
+                    .from('users')
+                    .select('name')
+                    .eq('name', name)
+                    .eq('pin_hash', pinHash);
+
+                if (checkError) throw checkError;
+
+                if (existingUsers && existingUsers.length > 0) {
+                    alert(`An account with the name "${name}" and this PIN already exists.\n\nPlease either:\n• Use a different name, or\n• Use a different PIN, or\n• Login with your existing account`);
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                // Create account in Supabase
+                const { data, error } = await supabase
+                    .from('users')
+                    .insert([{ name: name, pin_hash: pinHash }])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                // Save user data
+                currentUser = {
+                    id: data.id,
+                    name: data.name,
+                    pinHash: pinHash
+                };
+
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                // Migrate existing local data to Supabase
+                if (supplements.length > 0) {
+                    const shouldMigrate = confirm(`Found ${supplements.length} supplements on this device. Upload to your account?`);
+                    if (shouldMigrate) {
+                        await migrateLocalDataToSupabase();
+                    }
+                }
+
+                // Close modal and update UI
+                document.getElementById('createAccountModal').classList.remove('active');
+                document.getElementById('accountName').value = '';
+                clearPINInputs('pin');
+                clearPINInputs('confirmPin');
+
+                updateHeaderButtons();
+                updateStatsPersonalization();
+
+                alert(`Welcome, ${name}! 🎉\n\nYour data is now synced to the cloud!`);
+            } catch (error) {
+                console.error('Account creation error:', error);
+                alert('Error creating account. Please try again.');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // Migrate local data to Supabase
+        async function migrateLocalDataToSupabase() {
+            try {
+                // Upload supplements
+                const supplementsToUpload = supplements.map(s => ({
+                    user_id: currentUser.id,
+                    name: s.name,
+                    dosage: s.dosage,
+                    frequency: s.frequency,
+                    notes: s.notes
+                }));
+
+                const { data: uploadedSupplements, error: suppError } = await supabase
+                    .from('supplements')
+                    .insert(supplementsToUpload)
+                    .select();
+
+                if (suppError) throw suppError;
+
+                // Create ID mapping (old local ID -> new Supabase ID)
+                const idMap = {};
+                supplements.forEach((oldSupp, index) => {
+                    idMap[oldSupp.id] = uploadedSupplements[index].id;
+                });
+
+                // Upload history with new IDs
+                const historyToUpload = [];
+                Object.keys(history).forEach(date => {
+                    Object.keys(history[date]).forEach(key => {
+                        let supplementId, trackingTime;
+                        
+                        if (key.includes('-')) {
+                            const parts = key.split('-');
+                            supplementId = parts[0];
+                            trackingTime = parts.slice(1).join('-');
+                        } else {
+                            supplementId = key;
+                            trackingTime = null;
+                        }
+
+                        const newSupplementId = idMap[supplementId];
+                        if (newSupplementId) {
+                            historyToUpload.push({
+                                user_id: currentUser.id,
+                                supplement_id: newSupplementId,
+                                date: date,
+                                tracking_time: trackingTime
+                            });
+                        }
+                    });
+                });
+
+                if (historyToUpload.length > 0) {
+                    const { error: histError } = await supabase
+                        .from('history')
+                        .insert(historyToUpload);
+
+                    if (histError) console.error('History migration error:', histError);
+                }
+
+                // Sync back to get proper IDs
+                await syncSupplementsToSupabase();
+                await syncHistoryToSupabase();
+
+            } catch (error) {
+                console.error('Migration error:', error);
+            }
+        }
+
+        document.getElementById('cancelCreateAccountBtn').addEventListener('click', () => {
+            document.getElementById('createAccountModal').classList.remove('active');
+            document.getElementById('accountName').value = '';
+            clearPINInputs('pin');
+            clearPINInputs('confirmPin');
+        });
+
+        // Switch to login from create account
+        document.getElementById('switchToLoginBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('createAccountModal').classList.remove('active');
+            document.getElementById('loginModal').classList.add('active');
+            clearPINInputs('loginPin');
+        });
+
+        // Login
+        document.getElementById('loginSubmitBtn').addEventListener('click', async () => {
+            const pin = getPIN('loginPin');
+
+            if (pin.length !== 4) {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginError').textContent = 'Please enter a 4-digit PIN';
+                return;
+            }
+
+            // Show loading
+            const btn = document.getElementById('loginSubmitBtn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Logging in...';
+            btn.disabled = true;
+
+            try {
+                // Hash the PIN
+                const pinHash = await hashPIN(pin);
+
+                // Query Supabase for user with this PIN hash
+                const { data: users, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('pin_hash', pinHash)
+                    .limit(1);
+
+                if (error) throw error;
+
+                if (users && users.length > 0) {
+                    // Login successful
+                    const user = users[0];
+                    currentUser = {
+                        id: user.id,
+                        name: user.name,
+                        pinHash: pinHash
+                    };
+
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                    // Sync data from Supabase
+                    await syncSupplementsToSupabase();
+                    await syncHistoryToSupabase();
+
+                    document.getElementById('loginModal').classList.remove('active');
+                    document.getElementById('loginError').style.display = 'none';
+                    clearPINInputs('loginPin');
+                    
+                    updateHeaderButtons();
+                    updateStatsPersonalization();
+                    renderToday();
+                    renderManage();
+                    updateStats();
+
+                    alert(`Welcome back, ${user.name}! 👋`);
+                } else {
+                    // No user found with this PIN
+                    document.getElementById('loginError').style.display = 'block';
+                    document.getElementById('loginError').textContent = 'Incorrect PIN. Please try again.';
+                    clearPINInputs('loginPin');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginError').textContent = 'Error logging in. Please try again.';
+                clearPINInputs('loginPin');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('cancelLoginBtn').addEventListener('click', () => {
+            document.getElementById('loginModal').classList.remove('active');
+            document.getElementById('loginError').style.display = 'none';
+            clearPINInputs('loginPin');
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            const keepData = confirm('Logout and keep local data?\n\nOK = Keep data locally\nCancel = Clear all data');
+            
+            if (keepData !== null) {
+                currentUser = null;
+                localStorage.removeItem('currentUser');
+                
+                if (!keepData) {
+                    // Clear all data
+                    supplements = [];
+                    history = {};
+                    localStorage.removeItem('supplements');
+                    localStorage.removeItem('history');
+                }
+                
+                document.getElementById('accountInfoModal').classList.remove('active');
+                updateHeaderButtons();
+                renderToday();
+                renderManage();
+                updateStats();
+                location.reload();
+            }
+        });
+
+        document.getElementById('closeAccountInfoBtn').addEventListener('click', () => {
+            document.getElementById('accountInfoModal').classList.remove('active');
+        });
+
+        // Update evening time visibility based on frequency
+        document.getElementById('reminderFrequency').addEventListener('change', (e) => {
+            const eveningGroup = document.getElementById('eveningTimeGroup');
+            const morningLabel = document.getElementById('morningLabel');
+            
+            if (e.target.value === 'twice') {
+                eveningGroup.style.display = 'block';
+                morningLabel.textContent = 'Morning Time';
+            } else {
+                eveningGroup.style.display = 'none';
+                morningLabel.textContent = e.target.value === 'once' ? 'Reminder Time' : 'Reminder Time';
+            }
+        });
+
+        // Generate .ics file
+        document.getElementById('generateReminderBtn').addEventListener('click', () => {
+            const frequency = document.getElementById('reminderFrequency').value;
+            const morningTime = document.getElementById('morningTime').value;
+            const eveningTime = document.getElementById('eveningTime').value;
+            
+            generateICSFile(frequency, morningTime, eveningTime);
+            
+            // Mark reminders as set up
+            reminderSetup = true;
+            localStorage.setItem('reminderSetup', 'true');
+            updateHeaderButtons();
+            
+            document.getElementById('reminderModal').classList.remove('active');
+        });
+
+        // Function to generate .ics calendar file
+        function generateICSFile(frequency, morningTime, eveningTime) {
+            // Check if Chrome on iOS
+            const isChromeiOS = /CriOS/.test(navigator.userAgent);
+            
+            if (isChromeiOS) {
+                // Show warning for Chrome users
+                const useSafari = confirm(
+                    '📱 Chrome on iOS has trouble with calendar files.\n\n' +
+                    'For best results:\n' +
+                    '1. Copy this URL: meds.noneed.dev\n' +
+                    '2. Open it in Safari\n' +
+                    '3. Set up reminders there\n\n' +
+                    'Or continue in Chrome (may require extra steps)?'
+                );
+                
+                if (!useSafari) {
+                    return; // User cancelled
+                }
+            }
+            
+            const now = new Date();
+            const dateStr = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            
+            // Calculate start date for first event
+            const startMorning = new Date();
+            const [mHour, mMin] = morningTime.split(':');
+            startMorning.setHours(parseInt(mHour), parseInt(mMin), 0, 0);
+            
+            let icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Supplemedication Tracker//noneed.dev//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Supplement Reminders
+X-WR-TIMEZONE:UTC
+
+`;
+
+            // Helper function to format date for ICS
+            function formatICSDate(date) {
+                return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            }
+
+            // Determine recurrence rule
+            let rrule = '';
+            if (frequency === 'once') {
+                rrule = 'RRULE:FREQ=DAILY';
+            } else if (frequency === 'twice') {
+                rrule = 'RRULE:FREQ=DAILY';
+            } else if (frequency === 'every-other') {
+                rrule = 'RRULE:FREQ=DAILY;INTERVAL=2';
+            }
+
+            // Add morning/main reminder
+            icsContent += `BEGIN:VEVENT
+UID:supplement-reminder-morning-${dateStr}@noneed.dev
+DTSTAMP:${dateStr}
+DTSTART:${formatICSDate(startMorning)}
+DURATION:PT15M
+${rrule}
+SUMMARY:💊 Take Your Supplements
+DESCRIPTION:Time to check your supplements!\\n\\nTap the link to open your tracker.\\n\\nhttps://meds.noneed.dev
+URL:https://meds.noneed.dev
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-PT0M
+ACTION:DISPLAY
+DESCRIPTION:💊 Take Your Supplements
+END:VALARM
+END:VEVENT
+
+`;
+
+            // Add evening reminder if twice daily
+            if (frequency === 'twice') {
+                const startEvening = new Date();
+                const [eHour, eMin] = eveningTime.split(':');
+                startEvening.setHours(parseInt(eHour), parseInt(eMin), 0, 0);
+                
+                icsContent += `BEGIN:VEVENT
+UID:supplement-reminder-evening-${dateStr}@noneed.dev
+DTSTAMP:${dateStr}
+DTSTART:${formatICSDate(startEvening)}
+DURATION:PT15M
+RRULE:FREQ=DAILY
+SUMMARY:💊 Take Your Supplements
+DESCRIPTION:Time to check your supplements!\\n\\nTap the link to open your tracker.\\n\\nhttps://meds.noneed.dev
+URL:https://meds.noneed.dev
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-PT0M
+ACTION:DISPLAY
+DESCRIPTION:💊 Take Your Supplements
+END:VALARM
+END:VEVENT
+
+`;
+            }
+
+            icsContent += `END:VCALENDAR`;
+
+            // Create blob and download
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'supplement-reminders.ics';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            // Show instructions
+            let instructions = '📅 Calendar file downloaded!\n\n';
+            
+            if (isChromeiOS) {
+                instructions += '🔧 Chrome Workaround:\n' +
+                              '1. Open Safari\n' +
+                              '2. Go to: meds.noneed.dev\n' +
+                              '3. Set up reminders there\n\n' +
+                              '(Safari works better with iOS Calendar)';
+            } else {
+                const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+                
+                if (isSafari) {
+                    instructions += '📱 Safari on iOS:\n' +
+                                  '1. Tap the Downloads button\n' +
+                                  '2. Tap the .ics file\n' +
+                                  '3. Tap "Add All" in Calendar';
+                } else {
+                    instructions += '1. Find the downloaded file\n' +
+                                  '2. Tap to open it\n' +
+                                  '3. Add to your Calendar app';
+                }
+            }
+            
+            alert(instructions);
+        }
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+                
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+                document.getElementById(tabName + 'Tab').style.display = 'block';
+            });
+        });
+
+        // PWA Install
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBanner').classList.add('show');
+        });
+
+        document.getElementById('installBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                document.getElementById('installBanner').classList.remove('show');
+            }
+        });
+
+        // Initialize
+        async function initializeApp() {
+            initToday();
+            
+            // If user is logged in, sync from Supabase
+            if (currentUser && currentUser.id) {
+                await syncSupplementsToSupabase();
+                await syncHistoryToSupabase();
+            }
+            
+            renderToday();
+            renderManage();
+            updateStats();
+            updateHeaderButtons();
+            updateStatsPersonalization();
+        }
+
+        // Start the app
+        initializeApp();
+    </script>
+</body>
+</html>
