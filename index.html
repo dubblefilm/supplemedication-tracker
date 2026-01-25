@@ -778,42 +778,55 @@
     <!-- Reminder Settings Modal -->
     <div class="modal" id="reminderModal">
         <div class="modal-content">
-            <div class="modal-header">🔔 Reminder Settings</div>
-            
-            <div class="form-group">
-                <label class="form-label">Reminder Frequency</label>
-                <select class="form-select" id="reminderFrequency">
-                    <option value="once">Once Daily</option>
-                    <option value="twice">Twice Daily</option>
-                    <option value="every-other">Every Other Day</option>
-                </select>
+            <div class="modal-header">Reminder Settings</div>
+
+            <div id="desktopReminderContent">
+                <div class="form-group">
+                    <label class="form-label">Reminder Frequency</label>
+                    <select class="form-select" id="reminderFrequency">
+                        <option value="once">Once Daily</option>
+                        <option value="twice">Twice Daily</option>
+                        <option value="every-other">Every Other Day</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="morningTimeGroup">
+                    <label class="form-label"><span id="morningLabel">Reminder Time</span></label>
+                    <input type="time" class="form-input" id="morningTime" value="09:00">
+                </div>
+
+                <div class="form-group" id="eveningTimeGroup" style="display: none;">
+                    <label class="form-label">Evening Time</label>
+                    <input type="time" class="form-input" id="eveningTime" value="21:00">
+                </div>
             </div>
 
-            <div class="form-group" id="morningTimeGroup">
-                <label class="form-label">⏰ <span id="morningLabel">Morning Time</span></label>
-                <input type="time" class="form-input" id="morningTime" value="09:00">
+            <div id="mobileReminderInfo" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 12px; margin: 10px 0;">
+                <strong>Set up a daily reminder:</strong>
+                <ol style="margin: 15px 0 0 20px; padding: 0; line-height: 1.8;">
+                    <li>Open your Calendar app</li>
+                    <li>Create a new event called "Take Supplements"</li>
+                    <li>Set your preferred time</li>
+                    <li>Set it to repeat daily</li>
+                    <li>Add an alert/notification</li>
+                </ol>
+                <p style="margin-top: 15px; font-size: 0.9em; color: #666;">
+                    Tip: For easier setup, open this page on a laptop to download a calendar file.
+                </p>
             </div>
 
-            <div class="form-group" id="eveningTimeGroup" style="display: none;">
-                <label class="form-label">⏰ Evening Time</label>
-                <input type="time" class="form-input" id="eveningTime" value="21:00">
-            </div>
-
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin: 20px 0; font-size: 0.9em; color: #666;">
-                <strong>ℹ️ How it works:</strong>
+            <div id="desktopReminderInfo" style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin: 20px 0; font-size: 0.9em; color: #666;">
+                <strong>How it works:</strong>
                 <ul style="margin: 10px 0 0 20px; padding: 0;">
                     <li>Downloads a calendar file (.ics)</li>
-                    <li>Add to your iPhone/Android calendar</li>
-                    <li>Get native notifications with link to app</li>
+                    <li>Open the file to add to your calendar</li>
+                    <li>Get daily notifications</li>
                 </ul>
-                <br>
-                <strong>⚠️ Already have reminders?</strong><br>
-                Delete old calendar events before creating new ones
             </div>
 
             <div class="form-buttons">
                 <button type="button" class="btn btn-secondary" id="cancelReminderBtn">Cancel</button>
-                <button type="button" class="btn btn-primary" id="generateReminderBtn">📅 Generate Calendar Reminder</button>
+                <button type="button" class="btn btn-primary" id="generateReminderBtn">Download Calendar File</button>
             </div>
         </div>
     </div>
@@ -1614,6 +1627,14 @@
 
         // Reminder settings modal controls
         document.getElementById('reminderBtn').addEventListener('click', () => {
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+            // Show/hide appropriate content
+            document.getElementById('desktopReminderContent').style.display = isMobile ? 'none' : 'block';
+            document.getElementById('desktopReminderInfo').style.display = isMobile ? 'none' : 'block';
+            document.getElementById('mobileReminderInfo').style.display = isMobile ? 'block' : 'none';
+            document.getElementById('generateReminderBtn').textContent = isMobile ? 'Got It' : 'Download Calendar File';
+
             document.getElementById('reminderModal').classList.add('active');
         });
 
@@ -2001,17 +2022,14 @@
 
         // Generate .ics file
         document.getElementById('generateReminderBtn').addEventListener('click', async () => {
-            const isChromeiOS = /CriOS/.test(navigator.userAgent);
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-            if (isChromeiOS) {
-                // Chrome on iOS can't add .ics files to calendar properly
-                const copied = await copyToClipboard('https://meds.noneed.dev');
-                if (copied) {
-                    alert('Link copied!\n\n1. Open Safari\n2. Paste the link\n3. Set up reminders there\n\nSafari can add reminders to your Calendar properly.');
-                } else {
-                    alert('Please open this link in Safari:\n\nmeds.noneed.dev\n\nSafari can add reminders to your Calendar properly.');
-                }
+            if (isMobile) {
+                // Mobile users see instructions in modal, just close it
                 document.getElementById('reminderModal').classList.remove('active');
+                reminderSetup = true;
+                localStorage.setItem('reminderSetup', 'true');
+                updateHeaderButtons();
                 return;
             }
 
@@ -2028,16 +2046,6 @@
 
             document.getElementById('reminderModal').classList.remove('active');
         });
-
-        // Helper to copy text to clipboard
-        async function copyToClipboard(text) {
-            try {
-                await navigator.clipboard.writeText(text);
-                return true;
-            } catch {
-                return false;
-            }
-        }
 
         // Function to generate .ics calendar file
         async function generateICSFile(frequency, morningTime, eveningTime) {
