@@ -942,13 +942,17 @@
         // Initialize Supabase (only once!)
         const SUPABASE_URL = 'https://ocowlqvvrhcplhzzbhjk.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_ySjsURaOvpxP1-mg6o2NVQ_uy9zNOIW';
-        
+
         // Use a global variable to ensure single initialization
-        let supabase;
-        if (!window.appSupabase) {
-            window.appSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let supabase = null;
+        try {
+            if (!window.appSupabase && window.supabase) {
+                window.appSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+            supabase = window.appSupabase;
+        } catch (e) {
+            console.error('Supabase initialization failed:', e);
         }
-        supabase = window.appSupabase;
 
         // Account management
         let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
@@ -969,7 +973,7 @@
 
         // Sync supplements to Supabase
         async function syncSupplementsToSupabase() {
-            if (!currentUser || !currentUser.id) return;
+            if (!currentUser || !currentUser.id || !supabase) return;
 
             try {
                 // Get all supplements from Supabase
@@ -998,7 +1002,7 @@
 
         // Sync history to Supabase
         async function syncHistoryToSupabase() {
-            if (!currentUser || !currentUser.id) return;
+            if (!currentUser || !currentUser.id || !supabase) return;
 
             try {
                 // Get all history from Supabase
@@ -1309,7 +1313,7 @@
             const isTaken = history[today] && history[today][key];
             
             try {
-                if (currentUser && currentUser.id) {
+                if (currentUser && currentUser.id && supabase) {
                     if (isTaken) {
                         // Delete from Supabase
                         const { error } = await supabase
@@ -1527,7 +1531,7 @@
             try {
                 if (editingId) {
                     // Update existing
-                    if (currentUser && currentUser.id) {
+                    if (currentUser && currentUser.id && supabase) {
                         // Update in Supabase
                         const { error } = await supabase
                             .from('supplements')
@@ -1544,7 +1548,7 @@
                     editingId = null;
                 } else {
                     // Add new
-                    if (currentUser && currentUser.id) {
+                    if (currentUser && currentUser.id && supabase) {
                         // Add to Supabase
                         const { data, error } = await supabase
                             .from('supplements')
@@ -1595,7 +1599,7 @@
         async function deleteSupplement(id) {
             if (confirm('Are you sure you want to delete this supplement?')) {
                 try {
-                    if (currentUser && currentUser.id) {
+                    if (currentUser && currentUser.id && supabase) {
                         // Delete from Supabase (will cascade delete history)
                         const { error } = await supabase
                             .from('supplements')
@@ -1684,6 +1688,11 @@
                 return;
             }
 
+            if (!supabase) {
+                alert('Cloud sync is not available. Please try again later.');
+                return;
+            }
+
             // Show loading
             const btn = document.getElementById('createAccountSubmitBtn');
             const originalText = btn.textContent;
@@ -1757,6 +1766,8 @@
 
         // Migrate local data to Supabase
         async function migrateLocalDataToSupabase() {
+            if (!supabase) return;
+
             try {
                 // Upload supplements
                 const supplementsToUpload = supplements.map(s => ({
@@ -1900,6 +1911,12 @@
             if (pin.length !== 4) {
                 document.getElementById('loginError').style.display = 'block';
                 document.getElementById('loginError').textContent = 'Please enter a 4-digit PIN';
+                return;
+            }
+
+            if (!supabase) {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginError').textContent = 'Cloud sync is not available. Please try again later.';
                 return;
             }
 
