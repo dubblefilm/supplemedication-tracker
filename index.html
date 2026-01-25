@@ -2001,6 +2001,20 @@
 
         // Generate .ics file
         document.getElementById('generateReminderBtn').addEventListener('click', async () => {
+            const isChromeiOS = /CriOS/.test(navigator.userAgent);
+
+            if (isChromeiOS) {
+                // Chrome on iOS can't add .ics files to calendar properly
+                const copied = await copyToClipboard('https://meds.noneed.dev');
+                if (copied) {
+                    alert('Link copied!\n\n1. Open Safari\n2. Paste the link\n3. Set up reminders there\n\nSafari can add reminders to your Calendar properly.');
+                } else {
+                    alert('Please open this link in Safari:\n\nmeds.noneed.dev\n\nSafari can add reminders to your Calendar properly.');
+                }
+                document.getElementById('reminderModal').classList.remove('active');
+                return;
+            }
+
             const frequency = document.getElementById('reminderFrequency').value;
             const morningTime = document.getElementById('morningTime').value;
             const eveningTime = document.getElementById('eveningTime').value;
@@ -2014,6 +2028,16 @@
 
             document.getElementById('reminderModal').classList.remove('active');
         });
+
+        // Helper to copy text to clipboard
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch {
+                return false;
+            }
+        }
 
         // Function to generate .ics calendar file
         async function generateICSFile(frequency, morningTime, eveningTime) {
@@ -2109,23 +2133,11 @@ END:VCALENDAR`;
                 }
             }
 
-            // Fallback: Try direct download
+            // Fallback for iOS Safari and other browsers
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            const isChromeiOS = /CriOS/.test(navigator.userAgent);
 
-            if (isChromeiOS) {
-                // Chrome on iOS: Use data URL and open in new tab
-                const dataUrl = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(icsContent);
-                const newWindow = window.open(dataUrl, '_blank');
-
-                if (!newWindow) {
-                    // Popup blocked - copy to clipboard as last resort
-                    alert('Please allow popups, or use Safari for best results.\n\nURL: meds.noneed.dev');
-                } else {
-                    alert('Calendar file opened!\n\n1. Tap the Share button\n2. Choose "Open in Calendar"\n3. Add the events');
-                }
-            } else if (isIOS) {
-                // Safari on iOS
+            if (isIOS) {
+                // Safari on iOS - use data URL
                 const dataUrl = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(icsContent);
                 window.location.href = dataUrl;
                 alert('Calendar opened!\n\nTap "Add All" to add the reminders to your calendar.');
