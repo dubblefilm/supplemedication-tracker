@@ -1,4 +1,4 @@
-const CACHE_NAME = 'supplemedication-v2';
+const CACHE_NAME = 'supplemedication-v3';
 const urlsToCache = [
   './',
   './index.html',
