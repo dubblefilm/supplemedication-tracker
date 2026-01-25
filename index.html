@@ -508,28 +508,6 @@
             left: 26px;
         }
 
-        .pin-input-container {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin: 15px 0;
-        }
-
-        .pin-digit {
-            width: 50px;
-            height: 60px;
-            font-size: 2em;
-            text-align: center;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-
-        .pin-digit:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
         .account-info {
             background: #f8f9fa;
             padding: 20px;
@@ -842,39 +820,36 @@
     <!-- Create Account Modal -->
     <div class="modal" id="createAccountModal">
         <div class="modal-content">
-            <div class="modal-header">👤 Create Account</div>
-            
+            <div class="modal-header">Create Account</div>
+
             <div class="form-group">
-                <label class="form-label">What's your name?</label>
-                <input type="text" class="form-input" id="accountName" placeholder="Enter your name" required>
+                <label class="form-label">Name</label>
+                <input type="text" class="form-input" id="accountName" placeholder="Your name" required>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Create a 4-digit PIN</label>
-                <div class="pin-input-container">
-                    <input type="password" maxlength="1" class="pin-digit" id="pin1" inputmode="numeric" pattern="[0-9]">
-                    <input type="password" maxlength="1" class="pin-digit" id="pin2" inputmode="numeric" pattern="[0-9]">
-                    <input type="password" maxlength="1" class="pin-digit" id="pin3" inputmode="numeric" pattern="[0-9]">
-                    <input type="password" maxlength="1" class="pin-digit" id="pin4" inputmode="numeric" pattern="[0-9]">
-                </div>
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" id="accountEmail" placeholder="your@email.com" required>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Confirm PIN</label>
-                <div class="pin-input-container">
-                    <input type="password" maxlength="1" class="pin-digit" id="confirmPin1" inputmode="numeric" pattern="[0-9]">
-                    <input type="password" maxlength="1" class="pin-digit" id="confirmPin2" inputmode="numeric" pattern="[0-9]">
-                    <input type="password" maxlength="1" class="pin-digit" id="confirmPin3" inputmode="numeric" pattern="[0-9]">
-                    <input type="password" maxlength="1" class="pin-digit" id="confirmPin4" inputmode="numeric" pattern="[0-9]">
-                </div>
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" id="accountPassword" placeholder="Min 6 characters" required>
             </div>
+
+            <div class="form-group">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" class="form-input" id="accountConfirmPassword" placeholder="Confirm password" required>
+            </div>
+
+            <div id="createAccountError" style="color: #dc3545; text-align: center; margin: 10px 0; display: none;"></div>
 
             <div class="form-buttons">
                 <button type="button" class="btn btn-secondary" id="cancelCreateAccountBtn">Cancel</button>
                 <button type="button" class="btn btn-primary" id="createAccountSubmitBtn">Create Account</button>
             </div>
 
-            <div style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9em;">
+            <div style="text-align: center; margin-top: 15px;">
                 Already have an account? <a href="#" id="switchToLoginBtn" style="color: #667eea; font-weight: 600;">Login</a>
             </div>
         </div>
@@ -886,27 +861,43 @@
             <div class="modal-header">Welcome Back!</div>
 
             <div class="form-group">
-                <label class="form-label">Your Name</label>
-                <input type="text" class="form-input" id="loginName" placeholder="Enter your name" required>
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" id="loginEmail" placeholder="your@email.com" required>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Your 4-digit PIN</label>
-                <div class="pin-input-container">
-                    <input type="password" maxlength="1" class="pin-digit" id="loginPin1" inputmode="numeric" pattern="[0-9]">
-                    <input type="password" maxlength="1" class="pin-digit" id="loginPin2" inputmode="numeric" pattern="[0-9]">
-                    <input type="password" maxlength="1" class="pin-digit" id="loginPin3" inputmode="numeric" pattern="[0-9]">
-                    <input type="password" maxlength="1" class="pin-digit" id="loginPin4" inputmode="numeric" pattern="[0-9]">
-                </div>
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" id="loginPassword" placeholder="Your password" required>
             </div>
 
-            <div id="loginError" style="color: #dc3545; text-align: center; margin: 10px 0; display: none;">
-                Incorrect PIN. Please try again.
-            </div>
+            <div id="loginError" style="color: #dc3545; text-align: center; margin: 10px 0; display: none;"></div>
 
             <div class="form-buttons">
                 <button type="button" class="btn btn-secondary" id="cancelLoginBtn">Cancel</button>
                 <button type="button" class="btn btn-primary" id="loginSubmitBtn">Login</button>
+            </div>
+
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="#" id="forgotPasswordBtn" style="color: #667eea; font-weight: 600;">Forgot Password?</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div class="modal" id="resetPasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">Reset Password</div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" id="resetEmail" placeholder="your@email.com" required>
+            </div>
+
+            <div id="resetMessage" style="text-align: center; margin: 10px 0; display: none;"></div>
+
+            <div class="form-buttons">
+                <button type="button" class="btn btn-secondary" id="cancelResetBtn">Cancel</button>
+                <button type="button" class="btn btn-primary" id="sendResetBtn">Send Reset Link</button>
             </div>
         </div>
     </div>
@@ -914,12 +905,16 @@
     <!-- Account Info Modal -->
     <div class="modal" id="accountInfoModal">
         <div class="modal-content">
-            <div class="modal-header">👤 Account</div>
-            
+            <div class="modal-header">Account</div>
+
             <div class="account-info">
                 <div class="account-info-item">
                     <span class="account-label">Name</span>
                     <span class="account-value" id="accountDisplayName">-</span>
+                </div>
+                <div class="account-info-item">
+                    <span class="account-label">Email</span>
+                    <span class="account-value" id="accountDisplayEmail">-</span>
                 </div>
                 <div class="account-info-item">
                     <span class="account-label">Total Supplements</span>
@@ -957,18 +952,35 @@
         // Account management
         let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
         let reminderSetup = localStorage.getItem('reminderSetup') === 'true';
-        
+
         // Data Storage
         let supplements = JSON.parse(localStorage.getItem('supplements') || '[]');
         let history = JSON.parse(localStorage.getItem('history') || '{}');
 
-        // Better hash function using Web Crypto API
-        async function hashPIN(pin) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(pin);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        // Listen for auth state changes
+        if (supabaseClient) {
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                if (session) {
+                    currentUser = {
+                        id: session.user.id,
+                        email: session.user.email,
+                        name: session.user.user_metadata?.name || session.user.email
+                    };
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                } else {
+                    currentUser = null;
+                    localStorage.removeItem('currentUser');
+                }
+                updateHeaderButtons();
+                updateStatsPersonalization();
+            });
+        }
+
+        // Helper function to show error messages
+        function showError(element, message) {
+            element.textContent = message;
+            element.style.display = 'block';
+            element.style.color = '#dc3545';
         }
 
         // Sync supplements to Supabase
@@ -1029,55 +1041,17 @@
             }
         }
 
-        // PIN input auto-advance
-        function setupPINInputs(prefix) {
-            const pins = [
-                document.getElementById(`${prefix}1`),
-                document.getElementById(`${prefix}2`),
-                document.getElementById(`${prefix}3`),
-                document.getElementById(`${prefix}4`)
-            ];
-
-            pins.forEach((pin, index) => {
-                pin.addEventListener('input', (e) => {
-                    if (e.target.value && index < 3) {
-                        pins[index + 1].focus();
-                    }
-                });
-
-                pin.addEventListener('keydown', (e) => {
-                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
-                        pins[index - 1].focus();
-                    }
-                });
-            });
-        }
-
-        // Get PIN from inputs
-        function getPIN(prefix) {
-            return document.getElementById(`${prefix}1`).value +
-                   document.getElementById(`${prefix}2`).value +
-                   document.getElementById(`${prefix}3`).value +
-                   document.getElementById(`${prefix}4`).value;
-        }
-
-        // Clear PIN inputs
-        function clearPINInputs(prefix) {
-            for (let i = 1; i <= 4; i++) {
-                document.getElementById(`${prefix}${i}`).value = '';
-            }
-            document.getElementById(`${prefix}1`).focus();
-        }
-
         // Update button states
         function updateHeaderButtons() {
             const accountBtnText = document.getElementById('accountBtnText');
             const reminderBtnText = document.getElementById('reminderBtnText');
 
             if (currentUser) {
-                accountBtnText.textContent = `👤 Hi ${currentUser.name}`;
+                // Show name or email
+                const displayName = currentUser.name || currentUser.email.split('@')[0];
+                accountBtnText.textContent = `Hi ${displayName}`;
             } else {
-                accountBtnText.textContent = '👤 Create Account';
+                accountBtnText.textContent = 'Create Account';
             }
 
             if (reminderSetup) {
@@ -1650,7 +1624,8 @@
         document.getElementById('accountBtn').addEventListener('click', () => {
             if (currentUser) {
                 // Show account info
-                document.getElementById('accountDisplayName').textContent = currentUser.name;
+                document.getElementById('accountDisplayName').textContent = currentUser.name || '-';
+                document.getElementById('accountDisplayEmail').textContent = currentUser.email || '-';
                 document.getElementById('accountTotalSupplements').textContent = supplements.length;
                 const streak = parseInt(document.getElementById('streakStat').textContent);
                 document.getElementById('accountStreak').textContent = `${streak} day${streak !== 1 ? 's' : ''}`;
@@ -1661,105 +1636,76 @@
             }
         });
 
-        // Setup PIN inputs
-        setupPINInputs('pin');
-        setupPINInputs('confirmPin');
-        setupPINInputs('loginPin');
-
         // Create account
         document.getElementById('createAccountSubmitBtn').addEventListener('click', async () => {
             const name = document.getElementById('accountName').value.trim();
-            const pin = getPIN('pin');
-            const confirmPin = getPIN('confirmPin');
+            const email = document.getElementById('accountEmail').value.trim();
+            const password = document.getElementById('accountPassword').value;
+            const confirmPassword = document.getElementById('accountConfirmPassword').value;
+            const errorDiv = document.getElementById('createAccountError');
 
-            if (!name) {
-                alert('Please enter your name');
-                return;
+            // Validation
+            if (!name) { showError(errorDiv, 'Please enter your name'); return; }
+            if (!email) { showError(errorDiv, 'Please enter your email'); return; }
+            if (!password || password.length < 6) {
+                showError(errorDiv, 'Password must be at least 6 characters'); return;
             }
-
-            if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
-                alert('Please enter a 4-digit PIN');
-                return;
+            if (password !== confirmPassword) {
+                showError(errorDiv, 'Passwords do not match'); return;
             }
-
-            if (pin !== confirmPin) {
-                alert('PINs do not match');
-                clearPINInputs('confirmPin');
-                return;
-            }
-
             if (!supabaseClient) {
-                alert('Cloud sync is not available. Please try again later.');
-                return;
+                showError(errorDiv, 'Cloud sync is not available'); return;
             }
 
-            // Show loading
             const btn = document.getElementById('createAccountSubmitBtn');
-            const originalText = btn.textContent;
             btn.textContent = 'Creating...';
             btn.disabled = true;
 
             try {
-                // Hash the PIN
-                const pinHash = await hashPIN(pin);
-
-                // Check if this name + PIN combination already exists
-                const { data: existingUsers, error: checkError } = await supabaseClient
-                    .from('users')
-                    .select('name')
-                    .eq('name', name)
-                    .eq('pin_hash', pinHash);
-
-                if (checkError) throw checkError;
-
-                if (existingUsers && existingUsers.length > 0) {
-                    alert(`An account with the name "${name}" and this PIN already exists.\n\nPlease either:\n• Use a different name, or\n• Use a different PIN, or\n• Login with your existing account`);
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                    return;
-                }
-
-                // Create account in Supabase
-                const { data, error } = await supabaseClient
-                    .from('users')
-                    .insert([{ name: name, pin_hash: pinHash }])
-                    .select()
-                    .single();
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: { name: name }
+                    }
+                });
 
                 if (error) throw error;
 
-                // Save user data
-                currentUser = {
-                    id: data.id,
-                    name: data.name,
-                    pinHash: pinHash
-                };
+                // Check if email confirmation is required
+                if (data.user && !data.session) {
+                    alert('Please check your email to confirm your account.');
+                    document.getElementById('createAccountModal').classList.remove('active');
+                } else if (data.session) {
+                    // Auto-confirmed (development mode or email verification disabled)
+                    currentUser = {
+                        id: data.user.id,
+                        email: data.user.email,
+                        name: name
+                    };
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-                // Migrate existing local data to Supabase
-                if (supplements.length > 0) {
-                    const shouldMigrate = confirm(`Found ${supplements.length} supplements on this device. Upload to your account?`);
-                    if (shouldMigrate) {
-                        await migrateLocalDataToSupabase();
+                    // Migrate local data if exists
+                    if (supplements.length > 0) {
+                        const shouldMigrate = confirm(`Found ${supplements.length} supplements. Upload to your account?`);
+                        if (shouldMigrate) await migrateLocalDataToSupabase();
                     }
+
+                    document.getElementById('createAccountModal').classList.remove('active');
+                    document.getElementById('accountName').value = '';
+                    document.getElementById('accountEmail').value = '';
+                    document.getElementById('accountPassword').value = '';
+                    document.getElementById('accountConfirmPassword').value = '';
+                    errorDiv.style.display = 'none';
+
+                    updateHeaderButtons();
+                    updateStatsPersonalization();
+                    alert(`Welcome, ${name}!`);
                 }
-
-                // Close modal and update UI
-                document.getElementById('createAccountModal').classList.remove('active');
-                document.getElementById('accountName').value = '';
-                clearPINInputs('pin');
-                clearPINInputs('confirmPin');
-
-                updateHeaderButtons();
-                updateStatsPersonalization();
-
-                alert(`Welcome, ${name}! 🎉\n\nYour data is now synced to the cloud!`);
             } catch (error) {
-                console.error('Account creation error:', error);
-                alert('Error creating account. Please try again.');
+                showError(errorDiv, error.message);
             } finally {
-                btn.textContent = originalText;
+                btn.textContent = 'Create Account';
                 btn.disabled = false;
             }
         });
@@ -1838,8 +1784,10 @@
         document.getElementById('cancelCreateAccountBtn').addEventListener('click', () => {
             document.getElementById('createAccountModal').classList.remove('active');
             document.getElementById('accountName').value = '';
-            clearPINInputs('pin');
-            clearPINInputs('confirmPin');
+            document.getElementById('accountEmail').value = '';
+            document.getElementById('accountPassword').value = '';
+            document.getElementById('accountConfirmPassword').value = '';
+            document.getElementById('createAccountError').style.display = 'none';
         });
 
         // Switch to login from create account
@@ -1847,7 +1795,6 @@
             e.preventDefault();
             document.getElementById('createAccountModal').classList.remove('active');
             document.getElementById('loginModal').classList.add('active');
-            clearPINInputs('loginPin');
         });
 
         // Rate limiting for login attempts
@@ -1879,7 +1826,7 @@
                 localStorage.setItem('lockoutUntil', lockoutUntil.toString());
                 return `Too many failed attempts. Locked out for 1 minute.`;
             }
-            return `Incorrect name or PIN. ${5 - loginAttempts} attempts remaining.`;
+            return `Incorrect email or password. ${5 - loginAttempts} attempts remaining.`;
         }
 
         function resetLoginAttempts() {
@@ -1891,98 +1838,65 @@
 
         // Login
         document.getElementById('loginSubmitBtn').addEventListener('click', async () => {
-            const name = document.getElementById('loginName').value.trim();
-            const pin = getPIN('loginPin');
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
 
-            // Check rate limit
+            // Rate limiting
             const rateCheck = checkRateLimit();
             if (!rateCheck.allowed) {
-                document.getElementById('loginError').style.display = 'block';
-                document.getElementById('loginError').textContent = rateCheck.message;
+                showError(errorDiv, rateCheck.message);
                 return;
             }
 
-            if (!name) {
-                document.getElementById('loginError').style.display = 'block';
-                document.getElementById('loginError').textContent = 'Please enter your name';
-                return;
-            }
-
-            if (pin.length !== 4) {
-                document.getElementById('loginError').style.display = 'block';
-                document.getElementById('loginError').textContent = 'Please enter a 4-digit PIN';
-                return;
-            }
-
+            if (!email) { showError(errorDiv, 'Please enter your email'); return; }
+            if (!password) { showError(errorDiv, 'Please enter your password'); return; }
             if (!supabaseClient) {
-                document.getElementById('loginError').style.display = 'block';
-                document.getElementById('loginError').textContent = 'Cloud sync is not available. Please try again later.';
-                return;
+                showError(errorDiv, 'Cloud sync is not available'); return;
             }
 
-            // Show loading
             const btn = document.getElementById('loginSubmitBtn');
-            const originalText = btn.textContent;
             btn.textContent = 'Logging in...';
             btn.disabled = true;
 
             try {
-                // Hash the PIN
-                const pinHash = await hashPIN(pin);
-
-                // Query Supabase for user with matching name AND PIN hash
-                const { data: users, error } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('name', name)
-                    .eq('pin_hash', pinHash)
-                    .limit(1);
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
 
                 if (error) throw error;
 
-                if (users && users.length > 0) {
-                    // Login successful - reset attempts
-                    resetLoginAttempts();
+                resetLoginAttempts();
 
-                    const user = users[0];
-                    currentUser = {
-                        id: user.id,
-                        name: user.name,
-                        pinHash: pinHash
-                    };
+                currentUser = {
+                    id: data.user.id,
+                    email: data.user.email,
+                    name: data.user.user_metadata?.name || data.user.email
+                };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                // Sync cloud data
+                await syncSupplementsToSupabase();
+                await syncHistoryToSupabase();
 
-                    // Sync data from Supabase
-                    await syncSupplementsToSupabase();
-                    await syncHistoryToSupabase();
+                document.getElementById('loginModal').classList.remove('active');
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+                errorDiv.style.display = 'none';
 
-                    document.getElementById('loginModal').classList.remove('active');
-                    document.getElementById('loginError').style.display = 'none';
-                    document.getElementById('loginName').value = '';
-                    clearPINInputs('loginPin');
+                updateHeaderButtons();
+                updateStatsPersonalization();
+                renderToday();
+                renderManage();
+                updateStats();
 
-                    updateHeaderButtons();
-                    updateStatsPersonalization();
-                    renderToday();
-                    renderManage();
-                    updateStats();
-
-                    alert(`Welcome back, ${user.name}!`);
-                } else {
-                    // No user found - record failed attempt
-                    const errorMsg = recordFailedAttempt();
-                    document.getElementById('loginError').style.display = 'block';
-                    document.getElementById('loginError').textContent = errorMsg;
-                    clearPINInputs('loginPin');
-                }
+                alert(`Welcome back, ${currentUser.name}!`);
             } catch (error) {
-                console.error('Login error:', error);
-                document.getElementById('loginError').style.display = 'block';
-                document.getElementById('loginError').textContent = 'Error logging in. Please try again.';
-                clearPINInputs('loginPin');
+                const errorMsg = recordFailedAttempt();
+                showError(errorDiv, error.message || errorMsg);
             } finally {
-                btn.textContent = originalText;
+                btn.textContent = 'Login';
                 btn.disabled = false;
             }
         });
@@ -1990,32 +1904,79 @@
         document.getElementById('cancelLoginBtn').addEventListener('click', () => {
             document.getElementById('loginModal').classList.remove('active');
             document.getElementById('loginError').style.display = 'none';
-            document.getElementById('loginName').value = '';
-            clearPINInputs('loginPin');
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+        });
+
+        // Forgot password link
+        document.getElementById('forgotPasswordBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('loginModal').classList.remove('active');
+            document.getElementById('resetPasswordModal').classList.add('active');
+        });
+
+        // Cancel reset password
+        document.getElementById('cancelResetBtn').addEventListener('click', () => {
+            document.getElementById('resetPasswordModal').classList.remove('active');
+            document.getElementById('resetEmail').value = '';
+            document.getElementById('resetMessage').style.display = 'none';
+        });
+
+        // Send password reset
+        document.getElementById('sendResetBtn').addEventListener('click', async () => {
+            const email = document.getElementById('resetEmail').value.trim();
+            const messageDiv = document.getElementById('resetMessage');
+
+            if (!email) {
+                messageDiv.style.color = '#dc3545';
+                messageDiv.textContent = 'Please enter your email';
+                messageDiv.style.display = 'block';
+                return;
+            }
+
+            const btn = document.getElementById('sendResetBtn');
+            btn.textContent = 'Sending...';
+            btn.disabled = true;
+
+            try {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+                if (error) throw error;
+
+                messageDiv.style.color = '#28a745';
+                messageDiv.textContent = 'Password reset link sent! Check your email.';
+                messageDiv.style.display = 'block';
+            } catch (error) {
+                messageDiv.style.color = '#dc3545';
+                messageDiv.textContent = error.message;
+                messageDiv.style.display = 'block';
+            } finally {
+                btn.textContent = 'Send Reset Link';
+                btn.disabled = false;
+            }
         });
 
         // Logout
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            const keepData = confirm('Logout and keep local data?\n\nOK = Keep data locally\nCancel = Clear all data');
-            
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            const keepData = confirm('Logout and keep local data?\n\nOK = Keep data\nCancel = Clear data');
+
             if (keepData !== null) {
+                await supabaseClient.auth.signOut();
+
                 currentUser = null;
                 localStorage.removeItem('currentUser');
-                
+
                 if (!keepData) {
-                    // Clear all data
                     supplements = [];
                     history = {};
                     localStorage.removeItem('supplements');
                     localStorage.removeItem('history');
                 }
-                
+
                 document.getElementById('accountInfoModal').classList.remove('active');
                 updateHeaderButtons();
                 renderToday();
                 renderManage();
                 updateStats();
-                location.reload();
             }
         });
 
@@ -2230,13 +2191,26 @@ END:VEVENT
         // Initialize
         async function initializeApp() {
             initToday();
-            
-            // If user is logged in, sync from Supabase
+
+            // Check for existing auth session
+            if (supabaseClient) {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    currentUser = {
+                        id: session.user.id,
+                        email: session.user.email,
+                        name: session.user.user_metadata?.name || session.user.email
+                    };
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                }
+            }
+
+            // Sync if logged in
             if (currentUser && currentUser.id) {
                 await syncSupplementsToSupabase();
                 await syncHistoryToSupabase();
             }
-            
+
             renderToday();
             renderManage();
             updateStats();
