@@ -2000,162 +2000,147 @@
         });
 
         // Generate .ics file
-        document.getElementById('generateReminderBtn').addEventListener('click', () => {
+        document.getElementById('generateReminderBtn').addEventListener('click', async () => {
             const frequency = document.getElementById('reminderFrequency').value;
             const morningTime = document.getElementById('morningTime').value;
             const eveningTime = document.getElementById('eveningTime').value;
-            
-            generateICSFile(frequency, morningTime, eveningTime);
-            
+
+            await generateICSFile(frequency, morningTime, eveningTime);
+
             // Mark reminders as set up
             reminderSetup = true;
             localStorage.setItem('reminderSetup', 'true');
             updateHeaderButtons();
-            
+
             document.getElementById('reminderModal').classList.remove('active');
         });
 
         // Function to generate .ics calendar file
-        function generateICSFile(frequency, morningTime, eveningTime) {
-            // Check if Chrome on iOS
-            const isChromeiOS = /CriOS/.test(navigator.userAgent);
-            
-            if (isChromeiOS) {
-                // Show warning for Chrome users
-                const useSafari = confirm(
-                    '📱 Chrome on iOS has trouble with calendar files.\n\n' +
-                    'For best results:\n' +
-                    '1. Copy this URL: meds.noneed.dev\n' +
-                    '2. Open it in Safari\n' +
-                    '3. Set up reminders there\n\n' +
-                    'Or continue in Chrome (may require extra steps)?'
-                );
-                
-                if (!useSafari) {
-                    return; // User cancelled
-                }
-            }
-            
+        async function generateICSFile(frequency, morningTime, eveningTime) {
             const now = new Date();
             const dateStr = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-            
-            // Calculate start date for first event
+
+            // Calculate start date for first event (tomorrow to avoid past event issues)
             const startMorning = new Date();
+            startMorning.setDate(startMorning.getDate() + 1);
             const [mHour, mMin] = morningTime.split(':');
             startMorning.setHours(parseInt(mHour), parseInt(mMin), 0, 0);
-            
+
+            // Helper function to format date for ICS (local time, not UTC)
+            function formatICSDateLocal(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}${month}${day}T${hours}${minutes}00`;
+            }
+
+            // Determine recurrence rule
+            let rrule = 'RRULE:FREQ=DAILY';
+            if (frequency === 'every-other') {
+                rrule = 'RRULE:FREQ=DAILY;INTERVAL=2';
+            }
+
             let icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Supplemedication Tracker//noneed.dev//EN
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
 X-WR-CALNAME:Supplement Reminders
-X-WR-TIMEZONE:UTC
-
-`;
-
-            // Helper function to format date for ICS
-            function formatICSDate(date) {
-                return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-            }
-
-            // Determine recurrence rule
-            let rrule = '';
-            if (frequency === 'once') {
-                rrule = 'RRULE:FREQ=DAILY';
-            } else if (frequency === 'twice') {
-                rrule = 'RRULE:FREQ=DAILY';
-            } else if (frequency === 'every-other') {
-                rrule = 'RRULE:FREQ=DAILY;INTERVAL=2';
-            }
-
-            // Add morning/main reminder
-            icsContent += `BEGIN:VEVENT
-UID:supplement-reminder-morning-${dateStr}@noneed.dev
+BEGIN:VEVENT
+UID:supplement-morning-${Date.now()}@noneed.dev
 DTSTAMP:${dateStr}
-DTSTART:${formatICSDate(startMorning)}
-DURATION:PT15M
+DTSTART:${formatICSDateLocal(startMorning)}
+DURATION:PT5M
 ${rrule}
-SUMMARY:💊 Take Your Supplements
-DESCRIPTION:Time to check your supplements!\\n\\nTap the link to open your tracker.\\n\\nhttps://meds.noneed.dev
-URL:https://meds.noneed.dev
-STATUS:CONFIRMED
-SEQUENCE:0
+SUMMARY:Take Your Supplements
+DESCRIPTION:Time to check your supplements! Open https://meds.noneed.dev
 BEGIN:VALARM
 TRIGGER:-PT0M
 ACTION:DISPLAY
-DESCRIPTION:💊 Take Your Supplements
+DESCRIPTION:Take Your Supplements
 END:VALARM
-END:VEVENT
-
-`;
+END:VEVENT`;
 
             // Add evening reminder if twice daily
             if (frequency === 'twice') {
                 const startEvening = new Date();
+                startEvening.setDate(startEvening.getDate() + 1);
                 const [eHour, eMin] = eveningTime.split(':');
                 startEvening.setHours(parseInt(eHour), parseInt(eMin), 0, 0);
-                
-                icsContent += `BEGIN:VEVENT
-UID:supplement-reminder-evening-${dateStr}@noneed.dev
+
+                icsContent += `
+BEGIN:VEVENT
+UID:supplement-evening-${Date.now()}@noneed.dev
 DTSTAMP:${dateStr}
-DTSTART:${formatICSDate(startEvening)}
-DURATION:PT15M
+DTSTART:${formatICSDateLocal(startEvening)}
+DURATION:PT5M
 RRULE:FREQ=DAILY
-SUMMARY:💊 Take Your Supplements
-DESCRIPTION:Time to check your supplements!\\n\\nTap the link to open your tracker.\\n\\nhttps://meds.noneed.dev
-URL:https://meds.noneed.dev
-STATUS:CONFIRMED
-SEQUENCE:0
+SUMMARY:Take Your Supplements
+DESCRIPTION:Time to check your supplements! Open https://meds.noneed.dev
 BEGIN:VALARM
 TRIGGER:-PT0M
 ACTION:DISPLAY
-DESCRIPTION:💊 Take Your Supplements
+DESCRIPTION:Take Your Supplements
 END:VALARM
-END:VEVENT
-
-`;
+END:VEVENT`;
             }
 
-            icsContent += `END:VCALENDAR`;
+            icsContent += `
+END:VCALENDAR`;
 
-            // Create blob and download
-            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'supplement-reminders.ics';
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            
-            // Show instructions
-            let instructions = '📅 Calendar file downloaded!\n\n';
-            
-            if (isChromeiOS) {
-                instructions += '🔧 Chrome Workaround:\n' +
-                              '1. Open Safari\n' +
-                              '2. Go to: meds.noneed.dev\n' +
-                              '3. Set up reminders there\n\n' +
-                              '(Safari works better with iOS Calendar)';
-            } else {
-                const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-                
-                if (isSafari) {
-                    instructions += '📱 Safari on iOS:\n' +
-                                  '1. Tap the Downloads button\n' +
-                                  '2. Tap the .ics file\n' +
-                                  '3. Tap "Add All" in Calendar';
-                } else {
-                    instructions += '1. Find the downloaded file\n' +
-                                  '2. Tap to open it\n' +
-                                  '3. Add to your Calendar app';
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const file = new File([blob], 'supplement-reminders.ics', { type: 'text/calendar' });
+
+            // Try Web Share API first (works best on mobile)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Supplement Reminders',
+                        text: 'Add these reminders to your calendar'
+                    });
+                    alert('Great! Add the events to your Calendar app when prompted.');
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') return; // User cancelled
+                    // Fall through to other methods
                 }
             }
-            
-            alert(instructions);
+
+            // Fallback: Try direct download
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isChromeiOS = /CriOS/.test(navigator.userAgent);
+
+            if (isChromeiOS) {
+                // Chrome on iOS: Use data URL and open in new tab
+                const dataUrl = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(icsContent);
+                const newWindow = window.open(dataUrl, '_blank');
+
+                if (!newWindow) {
+                    // Popup blocked - copy to clipboard as last resort
+                    alert('Please allow popups, or use Safari for best results.\n\nURL: meds.noneed.dev');
+                } else {
+                    alert('Calendar file opened!\n\n1. Tap the Share button\n2. Choose "Open in Calendar"\n3. Add the events');
+                }
+            } else if (isIOS) {
+                // Safari on iOS
+                const dataUrl = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(icsContent);
+                window.location.href = dataUrl;
+                alert('Calendar opened!\n\nTap "Add All" to add the reminders to your calendar.');
+            } else {
+                // Desktop or Android - standard download
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'supplement-reminders.ics';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                alert('Calendar file downloaded!\n\n1. Open the downloaded file\n2. Add to your Calendar app');
+            }
         }
 
         // Tab switching
