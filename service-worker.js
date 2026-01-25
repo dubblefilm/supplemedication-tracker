@@ -1,7 +1,8 @@
-const CACHE_NAME = 'supplemedication-v1';
+const CACHE_NAME = 'supplemedication-v2';
 const urlsToCache = [
-  '/',
-  '/index.html'
+  './',
+  './index.html',
+  './manifest.json'
 ];
 
 // Install service worker and cache files

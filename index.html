@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💊 Supplemedication Tracker</title>
     <meta name="theme-color" content="#6366f1">
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU3VwcGxlbWVkaWNhdGlvbiBUcmFja2VyIiwic2hvcnRfbmFtZSI6IlN1cHBsZW1lbnRzIiwic3RhcnRfdXJsIjoiLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiNmZmZmZmYiLCJ0aGVtZV9jb2xvciI6IiM2MzY2ZjEiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJyUzRSUzQ3RleHQgeT0nLjllbScgZm9udC1zaXplPSc5MCclM0UlRjAlOUYlOTIlOEElM0MvdGV4dCUzRSUzQy9zdmclM0UiLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -884,12 +884,14 @@
     <div class="modal" id="loginModal">
         <div class="modal-content">
             <div class="modal-header">Welcome Back!</div>
-            
-            <div style="text-align: center; margin: 20px 0;">
-                <div style="font-size: 1.2em; color: #666;">Enter your 4-digit PIN</div>
+
+            <div class="form-group">
+                <label class="form-label">Your Name</label>
+                <input type="text" class="form-input" id="loginName" placeholder="Enter your name" required>
             </div>
 
             <div class="form-group">
+                <label class="form-label">Your 4-digit PIN</label>
                 <div class="pin-input-container">
                     <input type="password" maxlength="1" class="pin-digit" id="loginPin1" inputmode="numeric" pattern="[0-9]">
                     <input type="password" maxlength="1" class="pin-digit" id="loginPin2" inputmode="numeric" pattern="[0-9]">
@@ -1837,9 +1839,63 @@
             clearPINInputs('loginPin');
         });
 
+        // Rate limiting for login attempts
+        let loginAttempts = parseInt(localStorage.getItem('loginAttempts') || '0');
+        let lockoutUntil = parseInt(localStorage.getItem('lockoutUntil') || '0');
+
+        function checkRateLimit() {
+            const now = Date.now();
+            if (lockoutUntil > now) {
+                const remainingSeconds = Math.ceil((lockoutUntil - now) / 1000);
+                return { allowed: false, message: `Too many attempts. Try again in ${remainingSeconds} seconds.` };
+            }
+            // Reset attempts after lockout expires
+            if (lockoutUntil > 0 && lockoutUntil <= now) {
+                loginAttempts = 0;
+                localStorage.setItem('loginAttempts', '0');
+                localStorage.setItem('lockoutUntil', '0');
+            }
+            return { allowed: true };
+        }
+
+        function recordFailedAttempt() {
+            loginAttempts++;
+            localStorage.setItem('loginAttempts', loginAttempts.toString());
+
+            // Lockout after 5 failed attempts
+            if (loginAttempts >= 5) {
+                lockoutUntil = Date.now() + (60 * 1000); // 1 minute lockout
+                localStorage.setItem('lockoutUntil', lockoutUntil.toString());
+                return `Too many failed attempts. Locked out for 1 minute.`;
+            }
+            return `Incorrect name or PIN. ${5 - loginAttempts} attempts remaining.`;
+        }
+
+        function resetLoginAttempts() {
+            loginAttempts = 0;
+            lockoutUntil = 0;
+            localStorage.setItem('loginAttempts', '0');
+            localStorage.setItem('lockoutUntil', '0');
+        }
+
         // Login
         document.getElementById('loginSubmitBtn').addEventListener('click', async () => {
+            const name = document.getElementById('loginName').value.trim();
             const pin = getPIN('loginPin');
+
+            // Check rate limit
+            const rateCheck = checkRateLimit();
+            if (!rateCheck.allowed) {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginError').textContent = rateCheck.message;
+                return;
+            }
+
+            if (!name) {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginError').textContent = 'Please enter your name';
+                return;
+            }
 
             if (pin.length !== 4) {
                 document.getElementById('loginError').style.display = 'block';
@@ -1857,17 +1913,20 @@
                 // Hash the PIN
                 const pinHash = await hashPIN(pin);
 
-                // Query Supabase for user with this PIN hash
+                // Query Supabase for user with matching name AND PIN hash
                 const { data: users, error } = await supabase
                     .from('users')
                     .select('*')
+                    .eq('name', name)
                     .eq('pin_hash', pinHash)
                     .limit(1);
 
                 if (error) throw error;
 
                 if (users && users.length > 0) {
-                    // Login successful
+                    // Login successful - reset attempts
+                    resetLoginAttempts();
+
                     const user = users[0];
                     currentUser = {
                         id: user.id,
@@ -1883,19 +1942,21 @@
 
                     document.getElementById('loginModal').classList.remove('active');
                     document.getElementById('loginError').style.display = 'none';
+                    document.getElementById('loginName').value = '';
                     clearPINInputs('loginPin');
-                    
+
                     updateHeaderButtons();
                     updateStatsPersonalization();
                     renderToday();
                     renderManage();
                     updateStats();
 
-                    alert(`Welcome back, ${user.name}! 👋`);
+                    alert(`Welcome back, ${user.name}!`);
                 } else {
-                    // No user found with this PIN
+                    // No user found - record failed attempt
+                    const errorMsg = recordFailedAttempt();
                     document.getElementById('loginError').style.display = 'block';
-                    document.getElementById('loginError').textContent = 'Incorrect PIN. Please try again.';
+                    document.getElementById('loginError').textContent = errorMsg;
                     clearPINInputs('loginPin');
                 }
             } catch (error) {
@@ -1912,6 +1973,7 @@
         document.getElementById('cancelLoginBtn').addEventListener('click', () => {
             document.getElementById('loginModal').classList.remove('active');
             document.getElementById('loginError').style.display = 'none';
+            document.getElementById('loginName').value = '';
             clearPINInputs('loginPin');
         });
 
@@ -2163,6 +2225,13 @@ END:VEVENT
             updateStats();
             updateHeaderButtons();
             updateStatsPersonalization();
+        }
+
+        // Register service worker for offline support
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed:', err));
         }
 
         // Start the app
